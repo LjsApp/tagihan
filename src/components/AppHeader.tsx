@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import { Receipt, LogOut } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Receipt, LogOut, LayoutDashboard } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -27,6 +27,26 @@ export const AppHeader = () => {
             </div>
           </div>
         </Link>
+        
+        <nav className="hidden md:flex items-center gap-6 text-xs uppercase tracking-widest font-bold">
+          <NavLink 
+            to="/" 
+            className={({ isActive }) => 
+              `transition-colors hover:text-ink flex items-center gap-2 ${isActive ? "text-ink border-b-2 border-ink pb-1" : "text-muted-foreground"}`
+            }
+          >
+            Transaksi
+          </NavLink>
+          <NavLink 
+            to="/dashboard" 
+            className={({ isActive }) => 
+              `transition-colors hover:text-ink flex items-center gap-2 ${isActive ? "text-ink border-b-2 border-ink pb-1" : "text-muted-foreground"}`
+            }
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
+          </NavLink>
+        </nav>
+
         <div className="flex items-center gap-2">
           <NotificationBell />
           <button

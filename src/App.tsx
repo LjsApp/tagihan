@@ -7,6 +7,7 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Transaction from "./pages/Transaction.tsx";
 import Group from "./pages/Group.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
 import LoginPage from "./pages/Login.tsx";
 import { ProtectedRoute } from "./components/ProtectedRoute.tsx";
 import { ImageLightboxProvider } from "@/components/ImageLightbox";
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/transaksi/:id" element={<ProtectedRoute><Transaction /></ProtectedRoute>} />
           <Route path="/group/:id" element={<ProtectedRoute><Group /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
