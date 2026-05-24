@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { formatRp, formatTanggal, type Transaction, type Nota, type Company, type Bank } from "@/lib/nota";
 import {
-  Loader2, AlertCircle, Clock, Wallet, TrendingUp,
-  ChevronDown, ChevronUp, Filter
+  Loader2, AlertCircle, Clock, Wallet, TrendingUp, X, Filter
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -18,7 +17,7 @@ const fmtCompact = (v: number) => `Rp ${new Intl.NumberFormat("id-ID", { notatio
 const fmtFull = (v: number) => `Rp ${formatRp(v)}`;
 
 export default function Dashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
 
   const { data, isLoading } = useQuery({
@@ -229,28 +228,74 @@ export default function Dashboard() {
             <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-widest">Dashboard Analitik</h1>
             <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-widest mt-0.5">Pusat kendali keuangan & piutang</p>
           </div>
-          {/* Mobile sidebar toggle */}
+          {/* Mobile Filter Toggle Button */}
           <button
-            onClick={() => setSidebarOpen(v => !v)}
-            className="flex items-center gap-1 text-xs border-2 border-dashed border-paper-edge px-2 py-1 text-muted-foreground hover:text-ink transition-colors md:hidden"
+            onClick={() => setMobileFilterOpen(v => !v)}
+            className={`flex items-center gap-1.5 text-xs border-2 border-dashed px-2 py-1 transition-colors md:hidden ${
+              selectedCustomers.length > 0
+                ? "border-ink text-ink font-bold"
+                : "border-paper-edge text-muted-foreground hover:text-ink"
+            }`}
           >
-            <Filter className="w-3 h-3" /> Filter
+            <Filter className="w-3 h-3" />
+            Filter {selectedCustomers.length > 0 && `(${selectedCustomers.length})`}
           </button>
         </div>
 
+        {/* Mobile Filter Drawer (Overlay) */}
+        {mobileFilterOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            {/* backdrop */}
+            <div
+              className="absolute inset-0 bg-black/30"
+              onClick={() => setMobileFilterOpen(false)}
+            />
+            {/* panel */}
+            <div className="absolute top-0 right-0 bottom-0 w-64 bg-paper border-l-2 border-dashed border-paper-edge p-4 overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <span className="label text-xs">Filter Customer</span>
+                <button onClick={() => setMobileFilterOpen(false)}>
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+              {selectedCustomers.length > 0 && (
+                <button
+                  onClick={() => setSelectedCustomers([])}
+                  className="text-[10px] text-destructive hover:underline mb-3 block"
+                >
+                  Hapus Filter ({selectedCustomers.length})
+                </button>
+              )}
+              <div className="space-y-2.5">
+                {allCustomers.map(c => (
+                  <label key={c} className="flex items-start gap-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={selectedCustomers.includes(c)}
+                      onChange={() => toggleCustomer(c)}
+                      className="mt-0.5 accent-ink shrink-0"
+                    />
+                    <span className={`text-[10px] uppercase leading-tight break-words group-hover:text-ink transition-colors ${selectedCustomers.includes(c) ? "font-bold text-ink" : "text-muted-foreground"}`}>
+                      {c}
+                    </span>
+                  </label>
+                ))}
+                {allCustomers.length === 0 && (
+                  <p className="text-[10px] text-muted-foreground">Belum ada data</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-4 sm:gap-6">
 
-          {/* SIDEBAR FILTER */}
-          <aside className={`${sidebarOpen ? "block" : "hidden"} md:block w-44 lg:w-52 shrink-0`}>
+          {/* SIDEBAR FILTER — Desktop only */}
+          <aside className="hidden md:block w-44 lg:w-52 shrink-0">
             <div className="paper p-3 sticky top-20">
-              <div
-                className="flex items-center justify-between cursor-pointer mb-3"
-                onClick={() => setSidebarOpen(v => !v)}
-              >
+              <div className="flex items-center justify-between mb-3">
                 <span className="label text-[10px]">Filter Customer</span>
-                {sidebarOpen ? <ChevronUp className="w-3 h-3 text-muted-foreground" /> : <ChevronDown className="w-3 h-3 text-muted-foreground" />}
               </div>
-
               {selectedCustomers.length > 0 && (
                 <button
                   onClick={() => setSelectedCustomers([])}
@@ -259,7 +304,6 @@ export default function Dashboard() {
                   Hapus Filter ({selectedCustomers.length})
                 </button>
               )}
-
               <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
                 {allCustomers.map(c => (
                   <label key={c} className="flex items-start gap-2 cursor-pointer group">
