@@ -42,44 +42,50 @@ export default function GroupPage() {
 
   const load = async () => {
     if (!id) return;
+    
+    // Fetch group
     const { data: g } = await supabase
       .from("transaction_groups")
       .select("*")
       .eq("id", id)
       .maybeSingle();
+      
     if (!g) {
       toast.error("Group tidak ditemukan");
       return;
     }
-    setGroup(g as unknown as TransactionGroup);
 
+    // Fetch transactions
     const { data: ts } = await supabase
       .from("transactions")
       .select("*")
       .eq("group_id", id);
     const trxs = (ts as unknown as Transaction[]) || [];
-    setTrxList(trxs);
 
+    // Fetch notas for transactions
     const allNotaIds = trxs.flatMap((t) => t.nota_ids || []);
+    let map: Record<string, Nota[]> = {};
     if (allNotaIds.length > 0) {
       const { data: ns } = await supabase.from("notas").select("*").in("id", allNotaIds);
       const notasAll = (ns as unknown as Nota[]) || [];
-      const map: Record<string, Nota[]> = {};
       for (const t of trxs) {
         map[t.id] = notasAll.filter((n) => (t.nota_ids || []).includes(n.id));
       }
-      setNotasByTrx(map);
-    } else {
-      setNotasByTrx({});
     }
 
+    // Fetch available drafts
     const { data: drafts } = await supabase
       .from("transactions")
       .select("*")
       .is("group_id", null)
       .neq("status", "selesai")
       .order("created_at", { ascending: false });
+
+    // Set all states together at the end to prevent UI flash
+    setTrxList(trxs);
+    setNotasByTrx(map);
     setAllDrafts((drafts as unknown as Transaction[]) || []);
+    setGroup(g as unknown as TransactionGroup);
   };
 
   const loadCompaniesBanks = async () => {
