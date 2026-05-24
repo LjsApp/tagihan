@@ -94,7 +94,7 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <AppHeader />
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <div className="paper p-5 mb-5">
           <div className="text-center divider-dashed pb-3 mb-3 border-t-0 border-b-2">
             <h1 className="text-xl">Daftar Transaksi</h1>
@@ -103,122 +103,128 @@ const Index = () => {
             </p>
           </div>
 
+          {/* Search + Status Filter */}
           <div className="flex flex-col gap-2 mb-4">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Cari customer..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 border-2 border-paper-edge bg-paper rounded-none"
-                />
-              </div>
-              <div className="flex gap-1 border-2 border-paper-edge bg-paper">
-                {(["all", "draft", "selesai"] as const).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setStatusFilter(s)}
-                    className={`px-3 py-2 text-xs uppercase tracking-widest font-bold transition-colors ${
-                      statusFilter === s
-                        ? "bg-ink text-paper"
-                        : "text-muted-foreground hover:text-ink"
-                    }`}
-                  >
-                    {s === "all" ? "Semua" : s}
-                  </button>
-                ))}
-              </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Cari customer..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 border-2 border-paper-edge bg-paper rounded-none"
+              />
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-2 border-2 border-paper-edge bg-paper px-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <Input 
-                  type="date" 
-                  value={dateFrom} 
-                  onChange={e => setDateFrom(e.target.value)} 
-                  className="w-[120px] border-none shadow-none focus-visible:ring-0 h-9 text-xs" 
-                />
-                <span className="text-muted-foreground">-</span>
-                <Input 
-                  type="date" 
-                  value={dateTo} 
-                  onChange={e => setDateTo(e.target.value)} 
-                  className="w-[120px] border-none shadow-none focus-visible:ring-0 h-9 text-xs" 
-                />
-              </div>
-              <select 
-                value={limit} 
+
+            {/* Status filter tabs */}
+            <div className="flex border-2 border-paper-edge bg-paper">
+              {(["all", "draft", "selesai"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={`flex-1 py-2 text-xs uppercase tracking-widest font-bold transition-colors ${
+                    statusFilter === s ? "bg-ink text-paper" : "text-muted-foreground hover:text-ink"
+                  }`}
+                >
+                  {s === "all" ? "Semua" : s}
+                </button>
+              ))}
+            </div>
+
+            {/* Date filter row */}
+            <div className="flex items-center gap-1 border-2 border-paper-edge bg-paper px-2">
+              <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={e => setDateFrom(e.target.value)}
+                className="flex-1 border-none bg-transparent outline-none h-9 text-xs min-w-0"
+              />
+              <span className="text-muted-foreground text-xs">–</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={e => setDateTo(e.target.value)}
+                className="flex-1 border-none bg-transparent outline-none h-9 text-xs min-w-0"
+              />
+            </div>
+
+            {/* Limit + Action Buttons in one row */}
+            <div className="flex items-center gap-2">
+              <select
+                value={limit}
                 onChange={e => setLimit(Number(e.target.value))}
-                className="border-2 border-paper-edge bg-paper text-xs uppercase tracking-widest px-3 h-10 outline-none hover:border-ink cursor-pointer"
+                className="border-2 border-paper-edge bg-paper text-xs uppercase tracking-widest px-2 h-9 outline-none hover:border-ink cursor-pointer shrink-0"
               >
                 <option value={10}>10 Baris</option>
                 <option value={20}>20 Baris</option>
                 <option value={50}>50 Baris</option>
                 <option value={0}>Semua</option>
               </select>
-              <div className="flex-1"></div>
+              <div className="flex-1" />
               <Button
                 onClick={handleNewGroup}
                 variant="outline"
-                className="rounded-none border-2 border-ink uppercase tracking-widest text-xs font-bold"
+                size="sm"
+                className="rounded-none border-2 border-ink uppercase tracking-widest text-xs font-bold px-3 h-9"
               >
-                <Layers className="w-4 h-4 mr-1" /> Group Bayar
+                <Layers className="w-3.5 h-3.5 mr-1" /> Group
               </Button>
               <Button
                 onClick={handleNew}
-                className="bg-ink text-paper hover:bg-ink/90 rounded-none border-2 border-ink uppercase tracking-widest text-xs font-bold"
+                size="sm"
+                className="bg-ink text-paper hover:bg-ink/90 rounded-none border-2 border-ink uppercase tracking-widest text-xs font-bold px-3 h-9"
               >
-                <Plus className="w-4 h-4 mr-1" /> Transaksi Baru
+                <Plus className="w-3.5 h-3.5 mr-1" /> Baru
               </Button>
             </div>
           </div>
+
         </div>
 
         {groups.length > 0 && (
-          <div className="paper p-4 mb-5">
-            <div className="label mb-2">Group Pembayaran ({groups.length})</div>
-            <div className="grid gap-3">
+          <div className="paper p-3 sm:p-4 mb-4">
+            <div className="label mb-2 text-[10px] sm:text-xs">Group Pembayaran ({groups.length})</div>
+            <div className="grid gap-2">
               {groups.map((g) => {
                 const trxInGroup = transactions.filter(t => t.group_id === g.id);
+                const customers = Array.from(new Set(trxInGroup.map(t => t.customer).filter(Boolean)));
+                const total = trxInGroup.reduce((s, t) => s + Number(t.total_akhir || 0), 0);
                 return (
-                  <div key={g.id} className="paper p-4 hover:border-ink transition-colors">
-                    <div className="flex items-start justify-between gap-4">
+                  <div key={g.id} className="paper p-3 hover:border-ink transition-colors">
+                    <div className="flex items-start justify-between gap-2">
                       <Link to={`/group/${g.id}`} className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span
-                            className={`text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 border ${
-                              g.bukti_tf_url
-                                ? "border-success text-success"
-                                : "border-muted-foreground text-muted-foreground"
-                            }`}
-                          >
+                        <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                          <span className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 border shrink-0 ${
+                            g.bukti_tf_url ? "border-success text-success" : "border-muted-foreground text-muted-foreground"
+                          }`}>
                             {g.bukti_tf_url ? "SELESAI" : "DRAFT"}
                           </span>
-                          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                          <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
                             {formatTanggal(g.created_at)}
                           </span>
                         </div>
-                        <div className="font-bold uppercase truncate flex items-center gap-2">
-                          <Layers className="w-4 h-4 shrink-0 text-muted-foreground" />
-                          {g.nama || "(Tanpa nama)"}
+                        <div className="font-bold uppercase flex items-center gap-1.5 text-sm leading-snug">
+                          <Layers className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                          <span className="break-words">{g.nama || "(Tanpa nama)"}</span>
                         </div>
-                        <div className="text-xs text-muted-foreground mt-1">
+                        <div className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
                           {trxInGroup.length === 0 ? "Belum ada transaksi" : (
-                            <span>
+                            <>
                               Gabungan {trxInGroup.length} transaksi
-                              {trxInGroup.some(t => t.customer) ? ` (${Array.from(new Set(trxInGroup.map(t => t.customer).filter(Boolean))).join(', ')})` : ''}
-                            </span>
+                              {customers.length > 0 && (
+                                <span className="block text-[9px] mt-0.5 break-words">
+                                  {customers.join(" · ")}
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       </Link>
-                      <div className="text-right shrink-0">
-                        <div className="num text-lg">
-                          Rp {formatRp(trxInGroup.reduce((s,t) => s + Number(t.total_akhir||0), 0))}
-                        </div>
+                      <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                        <div className="num text-sm sm:text-base font-bold">Rp {formatRp(total)}</div>
                         <button
                           onClick={(e) => { e.preventDefault(); handleDeleteGroup(g.id); }}
-                          className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-1 ml-auto mt-1"
+                          className="text-[9px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-1"
                         >
                           <Trash2 className="w-3 h-3" /> Hapus
                         </button>
@@ -251,36 +257,34 @@ const Index = () => {
         ) : (
           <div className="grid gap-3">
             {paginated.map((t) => (
-              <div key={t.id} className="paper p-4 hover:border-ink transition-colors">
-                <div className="flex items-start justify-between gap-4">
+              <div key={t.id} className="paper p-3 hover:border-ink transition-colors">
+                <div className="flex items-start justify-between gap-3">
                   <Link to={`/transaksi/${t.id}`} className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span
-                        className={`text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 border ${
-                          t.status === "selesai"
-                            ? "border-success text-success"
-                            : "border-muted-foreground text-muted-foreground"
-                        }`}
-                      >
+                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                      <span className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 border shrink-0 ${
+                        t.status === "selesai"
+                          ? "border-success text-success"
+                          : "border-muted-foreground text-muted-foreground"
+                      }`}>
                         {t.status}
                       </span>
-                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
                         {formatTanggal(t.created_at)}
                       </span>
                     </div>
-                    <div className="font-bold uppercase truncate">
+                    <div className="font-bold uppercase truncate text-sm">
                       {t.customer || "(Tanpa nama customer)"}
                     </div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                      <Calendar className="w-3 h-3" />
+                    <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1">
+                      <Calendar className="w-3 h-3 shrink-0" />
                       JT: {formatTanggal(t.jatuh_tempo)} · {(t.nota_ids || []).length} nota
                     </div>
                   </Link>
-                  <div className="text-right shrink-0">
-                    <div className="num text-lg">Rp {formatRp(t.total_akhir)}</div>
+                  <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                    <div className="num text-sm sm:text-base font-bold">Rp {formatRp(t.total_akhir)}</div>
                     <button
                       onClick={() => handleDelete(t.id)}
-                      className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-1 ml-auto mt-1"
+                      className="text-[9px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-1"
                     >
                       <Trash2 className="w-3 h-3" /> Hapus
                     </button>
