@@ -98,16 +98,18 @@ const TransactionPage = () => {
       return;
     }
     const trxData = t as unknown as Transaction;
-    setTrx(trxData);
+    let loadedNotas: Nota[] = [];
     if (trxData.nota_ids.length > 0) {
       const { data: ns } = await supabase
         .from("notas")
         .select("*")
         .in("id", trxData.nota_ids);
-      setNotas((ns as unknown as Nota[]) || []);
-    } else {
-      setNotas([]);
+      loadedNotas = (ns as unknown as Nota[]) || [];
     }
+    
+    // Set both together and then finish loading
+    setNotas(loadedNotas);
+    setTrx(trxData);
     setLoading(false);
   };
 
@@ -151,7 +153,7 @@ const TransactionPage = () => {
   }, [notas]);
 
   useEffect(() => {
-    if (!trx) return;
+    if (loading || !trx) return;
     const newJT = jt ? toISODate(jt) : null;
     const customerFromNotas = notas.find((n) => n.nama_customer)?.nama_customer || trx.customer;
     if (

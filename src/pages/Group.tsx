@@ -246,6 +246,7 @@ export default function GroupPage() {
                 onChange={(e) => updateGroup({ nama: e.target.value })}
                 placeholder="Misal: Bayar bulan Mei"
                 className="rounded-none border-2 border-paper-edge bg-paper"
+                disabled={true}
               />
             </div>
 
