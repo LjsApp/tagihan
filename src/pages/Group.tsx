@@ -1,0 +1,598 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { AppHeader } from "@/components/AppHeader";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CompanyCard } from "@/components/CompanyCard";
+import { BankCard } from "@/components/BankCard";
+import { ArrowLeft, Check, Download, Image as ImageIcon, Loader2, Plus, Share2, Trash2, Upload, X } from "lucide-react";
+import {
+  formatKodeNota,
+  formatRp,
+  formatTanggal,
+  formatTanggalLong,
+  hitungDiskonTotal,
+  type Bank,
+  type Company,
+  type DiskonManual,
+  type PotonganLain,
+  type Nota,
+  type Transaction,
+  type TransactionGroup,
+} from "@/lib/nota";
+import { generateTandaTerimaGroupPDF } from "@/lib/pdfGroup";
+import { sharePDF, uploadPDFToDriveStructured } from "@/lib/pdfShare";
+import { toast } from "sonner";
+
+export default function GroupPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [group, setGroup] = useState<TransactionGroup | null>(null);
+  const [trxList, setTrxList] = useState<Transaction[]>([]);
+  const [allDrafts, setAllDrafts] = useState<Transaction[]>([]);
+  const [notasByTrx, setNotasByTrx] = useState<Record<string, Nota[]>>({});
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [banks, setBanks] = useState<Bank[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+
+  const load = async () => {
+    if (!id) return;
+    const { data: g } = await supabase
+      .from("transaction_groups")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    if (!g) {
+      toast.error("Group tidak ditemukan");
+      return;
+    }
+    setGroup(g as unknown as TransactionGroup);
+
+    const { data: ts } = await supabase
+      .from("transactions")
+      .select("*")
+      .eq("group_id", id);
+    const trxs = (ts as unknown as Transaction[]) || [];
+    setTrxList(trxs);
+
+    const allNotaIds = trxs.flatMap((t) => t.nota_ids || []);
+    if (allNotaIds.length > 0) {
+      const { data: ns } = await supabase.from("notas").select("*").in("id", allNotaIds);
+      const notasAll = (ns as unknown as Nota[]) || [];
+      const map: Record<string, Nota[]> = {};
+      for (const t of trxs) {
+        map[t.id] = notasAll.filter((n) => (t.nota_ids || []).includes(n.id));
+      }
+      setNotasByTrx(map);
+    } else {
+      setNotasByTrx({});
+    }
+
+    const { data: drafts } = await supabase
+      .from("transactions")
+      .select("*")
+      .is("group_id", null)
+      .neq("status", "selesai")
+      .order("created_at", { ascending: false });
+    setAllDrafts((drafts as unknown as Transaction[]) || []);
+  };
+
+  const loadCompaniesBanks = async () => {
+    const [{ data: cs }, { data: bs }] = await Promise.all([
+      supabase.from("companies").select("*").order("created_at", { ascending: false }),
+      supabase.from("banks").select("*").order("created_at", { ascending: false }),
+    ]);
+    setCompanies((cs as unknown as Company[]) || []);
+    setBanks((bs as unknown as Bank[]) || []);
+  };
+
+  useEffect(() => {
+    load();
+    loadCompaniesBanks();
+  }, [id]);
+
+  const grandTotal = useMemo(
+    () => trxList.reduce((s, t) => s + Number(t.total_akhir || 0), 0),
+    [trxList],
+  );
+  const company = companies.find((c) => c.id === group?.company_id) || null;
+  const bank = banks.find((b) => b.id === group?.bank_id) || null;
+
+  const updateGroup = async (patch: Partial<TransactionGroup>) => {
+    if (!group) return;
+    setGroup({ ...group, ...patch });
+    await supabase
+      .from("transaction_groups")
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq("id", group.id);
+  };
+
+  const handleAddTrx = async (trxId: string) => {
+    if (!group) return;
+    await supabase.from("transactions").update({ group_id: group.id }).eq("id", trxId);
+    // Auto-set group name from the first customer added
+    const addedTrx = allDrafts.find((t) => t.id === trxId);
+    if (addedTrx?.customer && (!group.nama || group.nama === "Group baru")) {
+      await updateGroup({ nama: addedTrx.customer });
+    }
+    await load();
+  };
+
+  const handleRemoveTrx = async (trxId: string) => {
+    await supabase.from("transactions").update({ group_id: null }).eq("id", trxId);
+    await load();
+  };
+
+  const handleUploadBukti = async (file: File) => {
+    if (!group) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `bukti-tf-group/${group.id}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("nota-images")
+        .upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data: pub } = supabase.storage.from("nota-images").getPublicUrl(path);
+      await updateGroup({
+        bukti_tf_url: pub.publicUrl,
+        tanggal_tf: group.tanggal_tf || new Date().toISOString().slice(0, 10),
+      });
+      toast.success("Bukti transfer diunggah");
+    } catch (e: any) {
+      toast.error(e.message || "Gagal upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!group) return;
+    setGenerating(true);
+    try {
+      const doc = await generateTandaTerimaGroupPDF(group, trxList, notasByTrx, company, bank);
+      doc.save(`tanda-terima-gabungan-${group.id.slice(0, 6)}.pdf`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Gagal membuat PDF");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleSaveDrive = async () => {
+    if (!group) return;
+    setGenerating(true);
+    try {
+      const year = new Date(group.created_at).getFullYear();
+      // Gunakan nama customer dari transaksi (bukan nama group) untuk path Drive
+      const customerName = trxList[0]?.customer || group.nama || "GROUP";
+      const doc = await generateTandaTerimaGroupPDF(group, trxList, notasByTrx, company, bank);
+      await uploadPDFToDriveStructured(doc, `tanda-terima-gabungan-${group.id.slice(0, 6)}.pdf`, customerName, year, null);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleFinalize = async () => {
+    if (!group) return;
+    if (!group.bukti_tf_url) {
+      toast.error("Upload bukti transfer dahulu");
+      return;
+    }
+    const ids = trxList.map((t) => t.id);
+    if (ids.length === 0) return;
+    const { error } = await supabase
+      .from("transactions")
+      .update({
+        status: "selesai",
+        bukti_tf_url: group.bukti_tf_url,
+        tanggal_tf: group.tanggal_tf,
+        updated_at: new Date().toISOString(),
+      })
+      .in("id", ids);
+    if (error) return toast.error(error.message);
+    toast.success("Semua transaksi diselesaikan");
+    load();
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!group) return;
+    if (!confirm("Hapus group ini? Transaksi tidak akan dihapus, hanya dilepas.")) return;
+    await supabase.from("transactions").update({ group_id: null }).eq("group_id", group.id);
+    await supabase.from("transaction_groups").delete().eq("id", group.id);
+    navigate("/");
+  };
+
+  if (!group) {
+    return (
+      <div className="min-h-screen">
+        <AppHeader />
+        <div className="text-center py-20 uppercase tracking-widest text-xs text-muted-foreground">
+          Memuat...
+        </div>
+      </div>
+    );
+  }
+
+  const headerTitle = `PERINCIAN TAGIHAN${
+    company?.kategori ? ` ${company.kategori.toUpperCase()}` : ""
+  }${company?.nama ? ` ${company.nama.toUpperCase()}` : ""}`;
+
+  return (
+    <div className="min-h-screen pb-24">
+      <AppHeader />
+      <main className="max-w-6xl mx-auto px-4 py-5">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1 text-xs uppercase tracking-widest text-muted-foreground hover:text-ink mb-3"
+        >
+          <ArrowLeft className="w-3 h-3" /> Daftar transaksi
+        </Link>
+
+        <div className="grid lg:grid-cols-[1fr,360px] gap-5">
+          <div>
+            <div className="paper p-4 mb-4">
+              <div className="label mb-1">Nama Group</div>
+              <Input
+                value={group.nama || ""}
+                onChange={(e) => updateGroup({ nama: e.target.value })}
+                placeholder="Misal: Bayar bulan Mei"
+                className="rounded-none border-2 border-paper-edge bg-paper"
+              />
+            </div>
+
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm">Transaksi dalam Group ({trxList.length})</h2>
+              <Button
+                onClick={() => setPickerOpen(true)}
+                className="bg-ink text-paper hover:bg-ink/90 rounded-none uppercase tracking-widest text-xs font-bold"
+              >
+                <Plus className="w-4 h-4 mr-1" /> Tambah Transaksi
+              </Button>
+            </div>
+
+            {trxList.length === 0 ? (
+              <div className="paper p-10 text-center">
+                <div className="uppercase tracking-widest text-sm font-bold">Belum ada transaksi</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tambahkan transaksi yang akan digabung
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {trxList.map((t) => (
+                  <div key={t.id} className="paper p-3">
+                    <div className="flex justify-between items-start gap-3">
+                      <Link to={`/transaksi/${t.id}`} className="flex-1 min-w-0">
+                        <div className="font-bold uppercase truncate">
+                          {t.customer || "(Tanpa nama)"}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {(t.nota_ids || []).length} nota · JT {formatTanggal(t.jatuh_tempo)}
+                        </div>
+                      </Link>
+                      <div className="text-right shrink-0">
+                        <div className="num">Rp {formatRp(t.total_akhir)}</div>
+                        <button
+                          onClick={() => handleRemoveTrx(t.id)}
+                          className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-1 ml-auto mt-1"
+                        >
+                          <X className="w-3 h-3" /> Lepas
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <aside className="space-y-4">
+            <div className="paper p-4">
+              <div className="text-center divider-dashed pb-2 mb-3 border-t-0 border-b-2">
+                <div className="label">Ringkasan Gabungan</div>
+              </div>
+              <div className="space-y-1 text-sm">
+                {trxList.map((t) => (
+                  <div key={t.id} className="flex justify-between text-xs">
+                    <span className="truncate">{t.customer || "-"}</span>
+                    <span className="num">Rp {formatRp(t.total_akhir)}</span>
+                  </div>
+                ))}
+                <div className="divider-dashed pt-2" />
+                <div className="flex justify-between text-lg font-bold pt-1">
+                  <span className="uppercase">Grand Total</span>
+                  <span className="num">Rp {formatRp(grandTotal)}</span>
+                </div>
+              </div>
+            </div>
+
+            <BankCard
+              selectedId={group.bank_id}
+              onSelect={(bank_id) => updateGroup({ bank_id })}
+            />
+
+            <div className="paper p-4">
+              <div className="label mb-2">Bukti Transfer (1 untuk semua)</div>
+              {group.bukti_tf_url ? (
+                <div className="space-y-2">
+                  <div className="border-2 border-paper-edge p-1 relative">
+                    <img src={group.bukti_tf_url} alt="Bukti" className="w-full max-h-56 object-contain" />
+                    <button
+                      onClick={() => updateGroup({ bukti_tf_url: null, tanggal_tf: null })}
+                      className="absolute top-1 right-1 bg-paper border border-ink p-1 hover:bg-destructive hover:text-paper"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <Input
+                    type="date"
+                    value={group.tanggal_tf || ""}
+                    onChange={(e) => updateGroup({ tanggal_tf: e.target.value || null })}
+                    className="rounded-none border-2 border-paper-edge bg-paper h-9"
+                  />
+                </div>
+              ) : (
+                <label className="w-full border-2 border-dashed border-paper-edge p-6 flex flex-col items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground hover:border-ink hover:text-ink cursor-pointer">
+                  {uploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <ImageIcon className="w-6 h-6" />}
+                  <span className="flex items-center gap-1"><Upload className="w-3 h-3" /> Upload Bukti TF</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleUploadBukti(f);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+
+            <Button
+              disabled={trxList.length === 0}
+              onClick={() => setPreviewOpen(true)}
+              className="w-full bg-ink text-paper hover:bg-ink/90 rounded-none uppercase tracking-widest text-xs font-bold py-6 border-2 border-ink"
+            >
+              Preview Tanda Terima Gabungan
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={handleDeleteGroup}
+              className="w-full border-2 border-destructive text-destructive rounded-none uppercase tracking-widest text-xs font-bold"
+            >
+              <Trash2 className="w-3 h-3 mr-1" /> Hapus Group
+            </Button>
+          </aside>
+        </div>
+      </main>
+
+      {/* Picker dialog */}
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogContent className="paper rounded-none border-2 border-dashed border-paper-edge max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="uppercase tracking-widest text-xs">
+              Pilih Transaksi untuk Digabung
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto space-y-2">
+            {(() => {
+              const groupCustomer = trxList.length > 0 ? trxList[0].customer : null;
+              const availableDrafts = allDrafts.filter(
+                (t) => !groupCustomer || t.customer === groupCustomer
+              );
+              
+              if (availableDrafts.length === 0) {
+                return (
+                  <p className="text-xs text-muted-foreground italic">
+                    Tidak ada transaksi draft yang bisa digabung (harus customer yang sama)
+                  </p>
+                );
+              }
+              
+              return availableDrafts.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    handleAddTrx(t.id);
+                  }}
+                  className="w-full paper p-3 hover:border-ink text-left flex justify-between items-center"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold uppercase truncate text-sm">
+                      {t.customer || "(Tanpa nama)"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {(t.nota_ids || []).length} nota · {formatTanggal(t.created_at)}
+                    </div>
+                  </div>
+                  <div className="num text-sm shrink-0">Rp {formatRp(t.total_akhir)}</div>
+                </button>
+              ));
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Preview dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-md paper rounded-none border-2 border-dashed border-paper-edge max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="uppercase tracking-widest text-center text-xs">
+              {headerTitle}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="bg-paper p-4 border-2 border-ink text-sm">
+            <div className="text-center mb-3">
+              <div className="font-bold uppercase text-xs leading-tight">{headerTitle}</div>
+              <div className="text-[10px] uppercase tracking-widest mt-1">
+                {trxList.length} Transaksi Digabung
+              </div>
+            </div>
+            <div className="divider-dashed mb-2" />
+            {trxList.map((t, idx) => {
+              const notas = notasByTrx[t.id] || [];
+              return (
+                <div key={t.id} className="mb-3">
+                  <div className="text-xs font-bold uppercase">
+                    #{idx + 1} {t.customer || "-"}
+                  </div>
+                  <div className="space-y-0.5 text-[11px] mt-1">
+                    {notas.map((n) => (
+                      <div key={n.id} className="grid grid-cols-[auto,1fr,auto] gap-x-2">
+                        <span>{formatTanggal(n.tanggal)}</span>
+                        <span className="truncate font-bold">{formatKodeNota(n)}</span>
+                        <span className="num text-right">{formatRp(n.netto)}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between">
+                      <span>Sub Total</span>
+                      <span className="num">Rp {formatRp(t.subtotal)}</span>
+                    </div>
+                    {(t.diskon_manual || []).map((d: DiskonManual, i) => (
+                      <div key={i} className="flex justify-between text-muted-foreground">
+                        <span>Disc {d.tipe === "persen" ? `${d.nilai}%` : `Rp ${formatRp(d.nilai)}`}</span>
+                        <span className="num">
+                          {d.tipe === "persen"
+                            ? "- Rp " + formatRp((t.subtotal * Number(d.nilai)) / 100)
+                            : "- Rp " + formatRp(d.nilai)}
+                        </span>
+                      </div>
+                    ))}
+                    {(t.potongan_lain || []).map((p: PotonganLain, i) => (
+                      <div key={`p-${i}`} className="flex justify-between text-muted-foreground">
+                        <span>{p.nama || "Potongan"}</span>
+                        <span className="num">- Rp {formatRp(p.nominal)}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between font-bold border-t border-dashed border-paper-edge pt-1">
+                      <span>Total</span>
+                      <span className="num">Rp {formatRp(t.total_akhir)}</span>
+                    </div>
+                  </div>
+                  <div className="divider-dashed my-2" />
+                </div>
+              );
+            })}
+            <div className="flex justify-between text-lg font-bold">
+              <span className="uppercase">GRAND TOTAL</span>
+              <span className="num">Rp {formatRp(grandTotal)}</span>
+            </div>
+            {bank && (
+              <>
+                <div className="divider-dashed my-3" />
+                <div className="text-xs uppercase tracking-widest text-center">
+                  <div className="font-bold">Pembayaran via</div>
+                  <div className="mt-1">{bank.nama_bank}</div>
+                  <div className="num normal-case tracking-normal">{bank.no_rek}</div>
+                  <div>a/n {bank.atas_nama}</div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Lampiran nota preview */}
+          {trxList.some((t) => (notasByTrx[t.id] || []).some((n) => n.file_url)) && (
+            <div className="border-2 border-dashed border-paper-edge p-2">
+              <div className="label text-center mb-2">Lampiran Foto Nota</div>
+              <div className="grid grid-cols-2 gap-2">
+                {trxList.flatMap((t) =>
+                  (notasByTrx[t.id] || [])
+                    .filter((n) => n.file_url)
+                    .map((n) => (
+                      <div key={n.id} className="border border-paper-edge p-1">
+                        <img
+                          src={n.file_url!}
+                          alt={formatKodeNota(n)}
+                          className="w-full h-32 object-cover"
+                          style={{ filter: "grayscale(1) contrast(1.25) brightness(1.05)" }}
+                        />
+                        <div className="text-[9px] uppercase tracking-widest text-center mt-1 font-bold">
+                          {formatKodeNota(n)}
+                        </div>
+                      </div>
+                    )),
+                )}
+              </div>
+            </div>
+          )}
+
+          {group.bukti_tf_url && (
+            <div className="border-2 border-dashed border-paper-edge p-2">
+              <div className="label text-center mb-2">Bukti Transfer</div>
+              <div className="border border-paper-edge p-1">
+                <img src={group.bukti_tf_url} alt="bukti" className="w-full max-h-64 object-contain" />
+                <div className="text-[10px] uppercase tracking-widest text-center mt-1 font-bold">
+                  Tanggal: {formatTanggalLong(group.tanggal_tf)}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-2 pt-3">
+            <Button
+              onClick={async () => {
+                setGenerating(true);
+                try {
+                  const doc = await generateTandaTerimaGroupPDF(group, trxList, notasByTrx, company, bank);
+                  await sharePDF(doc, `tanda-terima-gabungan-${group.id.slice(0, 6)}.pdf`, headerTitle);
+                } catch (e) {
+                  toast.error("Gagal berbagi PDF");
+                } finally {
+                  setGenerating(false);
+                }
+              }}
+              disabled={generating}
+              className="bg-ink text-paper hover:bg-ink/90 rounded-none uppercase tracking-widest text-xs font-bold"
+            >
+              {generating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Share2 className="w-4 h-4 mr-1" />}
+              Bagikan
+            </Button>
+            <Button
+              onClick={handleDownload}
+              disabled={generating}
+              variant="outline"
+              className="border-2 rounded-none uppercase tracking-widest text-xs font-bold"
+            >
+              {generating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
+              Cetak PDF
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 gap-2 pt-1">
+            <Button
+              onClick={handleSaveDrive}
+              disabled={generating}
+              variant="outline"
+              className="border-2 rounded-none uppercase tracking-widest text-xs font-bold text-[#1fa463] border-[#1fa463] hover:bg-[#1fa463] hover:text-white"
+            >
+              {generating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : null}
+              Drive
+            </Button>
+            <Button
+              onClick={handleFinalize}
+              disabled={!group.bukti_tf_url || trxList.length === 0}
+              className="bg-success text-success-foreground hover:bg-success/90 rounded-none uppercase tracking-widest text-xs font-bold"
+            >
+              <Check className="w-4 h-4 mr-1" /> Tandai Semua Selesai
+            </Button>
+            {!group.bukti_tf_url && (
+              <div className="text-[10px] uppercase tracking-widest text-stamp text-center border border-stamp p-2">
+                Upload bukti transfer untuk menandai selesai
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Receipt Paper Style — design system */
+@layer base {
+  :root {
+    /* Stone-paper palette */
+    --background: 40 14% 94%;            /* stone-100 */
+    --foreground: 25 12% 18%;            /* stone-800 */
+
+    --paper: 0 0% 100%;
+    --paper-foreground: 25 12% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 25 12% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 12% 18%;
+
+    --primary: 25 14% 16%;               /* near-black ink */
+    --primary-foreground: 40 14% 96%;
+
+    --secondary: 40 10% 88%;
+    --secondary-foreground: 25 12% 18%;
+
+    --muted: 40 10% 90%;
+    --muted-foreground: 25 8% 42%;
+
+    --accent: 14 60% 48%;                /* receipt red stamp */
+    --accent-foreground: 0 0% 100%;
+
+    --success: 142 45% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 10% 78%;
+    --input: 30 10% 82%;
+    --ring: 25 14% 30%;
+
+    --radius: 0.25rem;
+
+    /* Receipt specific */
+    --ink: 25 14% 16%;
+    --ink-light: 25 8% 42%;
+    --paper-edge: 30 10% 75%;
+    --stamp-red: 14 70% 45%;
+
+    --shadow-paper: 0 1px 0 hsl(30 10% 78%), 0 8px 16px -8px hsl(25 14% 16% / 0.15);
+  }
+
+  .dark {
+    --background: 25 10% 10%;
+    --foreground: 40 14% 92%;
+    --paper: 25 10% 14%;
+    --paper-foreground: 40 14% 92%;
+    --card: 25 10% 14%;
+    --card-foreground: 40 14% 92%;
+    --popover: 25 10% 14%;
+    --popover-foreground: 40 14% 92%;
+    --primary: 40 14% 92%;
+    --primary-foreground: 25 10% 10%;
+    --secondary: 25 8% 20%;
+    --secondary-foreground: 40 14% 92%;
+    --muted: 25 8% 20%;
+    --muted-foreground: 40 8% 60%;
+    --accent: 14 60% 55%;
+    --accent-foreground: 0 0% 100%;
+    --border: 25 8% 22%;
+    --input: 25 8% 22%;
+    --ring: 40 14% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      repeating-linear-gradient(0deg, hsl(var(--foreground) / 0.015) 0 1px, transparent 1px 4px);
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-bold tracking-tight uppercase;
+  }
+}
+
+@layer components {
+  .paper {
+    @apply bg-[hsl(var(--paper))] text-[hsl(var(--paper-foreground))] border-2 border-dashed border-[hsl(var(--paper-edge))];
+    box-shadow: var(--shadow-paper);
+  }
+
+  .paper-solid {
+    @apply bg-[hsl(var(--paper))] text-[hsl(var(--paper-foreground))] border-2 border-[hsl(var(--ink))];
+    box-shadow: var(--shadow-paper);
+  }
+
+  .divider-dashed {
+    @apply border-t-2 border-dashed border-[hsl(var(--paper-edge))];
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+    @apply font-bold;
+  }
+
+  .stamp {
+    @apply inline-block uppercase tracking-widest font-bold border-2 border-[hsl(var(--stamp-red))] text-[hsl(var(--stamp-red))] px-2 py-0.5 text-xs;
+    transform: rotate(-3deg);
+  }
+
+  .label {
+    @apply uppercase text-[10px] tracking-[0.2em] text-muted-foreground font-semibold;
+  }
+}
