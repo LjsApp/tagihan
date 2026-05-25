@@ -448,10 +448,12 @@ const Index = () => {
                 </Button>
               </div>
             )}
-          </>
+          </div>
         )}
-      </main>
-    </div>
+      </>
+    )}
+  </main>
+</div>
   );
 };
 
