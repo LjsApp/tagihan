@@ -70,9 +70,10 @@ export const generateTandaTerimaGroupPDF = async (
 
     for (const n of notas) {
       doc.text(formatTanggal(n.tanggal), 10, y);
-      doc.text(formatKodeNota(n), 45, y);
+      const kodeLines = doc.splitTextToSize(formatKodeNota(n), W - 85);
+      doc.text(kodeLines, 45, y);
       doc.text(formatRp(n.netto), W - 10, y, { align: "right" });
-      y += 3.5;
+      y += 3.5 * kodeLines.length;
     }
     const totalDisc = hitungDiskonTotal(trx.subtotal, trx.diskon_manual || []);
     doc.text("Sub Total", 10, y);

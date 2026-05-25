@@ -61,9 +61,10 @@ export const generateTandaTerimaPDF = async (
   doc.setFont("courier", "normal");
   for (const n of notas) {
     doc.text(formatTanggal(n.tanggal), 10, y);
-    doc.text(formatKodeNota(n), 45, y);
+    const kodeLines = doc.splitTextToSize(formatKodeNota(n), W - 85);
+    doc.text(kodeLines, 45, y);
     doc.text(formatRp(n.netto), W - 10, y, { align: "right" });
-    y += 4;
+    y += 4 * kodeLines.length;
   }
 
   y += 1;
