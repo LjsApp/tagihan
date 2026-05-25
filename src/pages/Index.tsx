@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, FileText, Calendar, Trash2, Layers, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, FileText, Calendar, Trash2, Layers, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Cloud } from "lucide-react";
 import { formatRp, formatTanggal, type Transaction } from "@/lib/nota";
 import { toast } from "sonner";
 
@@ -76,7 +76,11 @@ const Index = () => {
     queryClient.invalidateQueries({ queryKey: ["dashboardData"] });
   };
 
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const toggleGroup = (id: string) => setExpandedGroups(p => ({ ...p, [id]: !p[id] }));
+
   const filtered = transactions.filter((t) => {
+    if (t.group_id) return false;
     if (statusFilter !== "all" && t.status !== statusFilter) return false;
     if (search && !(t.customer || "").toLowerCase().includes(search.toLowerCase())) return false;
     if (dateFrom && t.created_at < dateFrom) return false;
@@ -189,10 +193,12 @@ const Index = () => {
                 const trxInGroup = transactions.filter(t => t.group_id === g.id);
                 const customers = Array.from(new Set(trxInGroup.map(t => t.customer).filter(Boolean)));
                 const total = trxInGroup.reduce((s, t) => s + Number(t.total_akhir || 0), 0);
+                const isExpanded = expandedGroups[g.id];
+                
                 return (
-                  <div key={g.id} className="paper p-3 hover:border-ink transition-colors">
-                    <div className="flex items-start justify-between gap-2">
-                      <Link to={`/group/${g.id}`} className="flex-1 min-w-0">
+                  <div key={g.id} className="paper p-3 hover:border-ink transition-colors flex flex-col">
+                    <div className="flex items-start justify-between gap-2 cursor-pointer" onClick={() => toggleGroup(g.id)}>
+                      <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5 mb-1">
                           <span className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 border shrink-0 ${
                             g.bukti_tf_url ? "border-success text-success" : "border-muted-foreground text-muted-foreground"
@@ -202,8 +208,13 @@ const Index = () => {
                           <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
                             {formatTanggal(g.created_at)}
                           </span>
+                          {g.drive_file_id && (
+                            <span className="text-[9px] uppercase tracking-widest font-bold text-success flex items-center gap-0.5">
+                              <Cloud className="w-3 h-3" /> DRIVE
+                            </span>
+                          )}
                         </div>
-                        <div className="font-bold uppercase flex items-center gap-1.5 text-sm leading-snug">
+                        <div className="font-bold uppercase flex items-center gap-1.5 text-sm leading-snug hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/group/${g.id}`); }}>
                           <Layers className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
                           <span className="break-words">{g.nama || "(Tanpa nama)"}</span>
                         </div>
@@ -219,17 +230,37 @@ const Index = () => {
                             </>
                           )}
                         </div>
-                      </Link>
+                      </div>
                       <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                        <div className="num text-sm sm:text-base font-bold">Rp {formatRp(total)}</div>
+                        <div className="num text-sm sm:text-base font-bold flex items-center gap-2">
+                          Rp {formatRp(total)}
+                          {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                        </div>
                         <button
-                          onClick={(e) => { e.preventDefault(); handleDeleteGroup(g.id); }}
+                          onClick={(e) => { e.stopPropagation(); handleDeleteGroup(g.id); }}
                           className="text-[9px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-1"
                         >
                           <Trash2 className="w-3 h-3" /> Hapus
                         </button>
                       </div>
                     </div>
+                    
+                    {/* Collapsed Transactions list */}
+                    {isExpanded && trxInGroup.length > 0 && (
+                      <div className="mt-3 pt-3 border-t-2 border-dashed border-paper-edge grid gap-2 pl-4 border-l-2 border-ink/20">
+                        {trxInGroup.map(t => (
+                          <Link key={t.id} to={`/transaksi/${t.id}`} className="paper p-2 hover:border-ink transition-colors flex items-center justify-between text-xs min-w-0">
+                            <div className="min-w-0 truncate pr-2">
+                              <div className="font-bold uppercase truncate">{t.customer || "(Tanpa nama)"}</div>
+                              <div className="text-[10px] text-muted-foreground truncate">
+                                {formatTanggal(t.created_at)} · {(t.nota_ids || []).length} nota
+                              </div>
+                            </div>
+                            <div className="num font-bold shrink-0">Rp {formatRp(t.total_akhir)}</div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -271,6 +302,11 @@ const Index = () => {
                       <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
                         {formatTanggal(t.created_at)}
                       </span>
+                      {t.drive_file_id && (
+                        <span className="text-[9px] uppercase tracking-widest font-bold text-success flex items-center gap-0.5">
+                          <Cloud className="w-3 h-3" /> DRIVE
+                        </span>
+                      )}
                     </div>
                     <div className="font-bold uppercase truncate text-sm">
                       {t.customer || "(Tanpa nama customer)"}

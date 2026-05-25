@@ -43,7 +43,9 @@ export const TandaTerimaModal = ({
   onFinalized?: () => void;
 }) => {
   const totalDisc = hitungDiskonTotal(trx.subtotal, trx.diskon_manual || []);
-  const [generating, setGenerating] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [isSavingDrive, setIsSavingDrive] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const headerTitle = `PERINCIAN TAGIHAN${
     company?.kategori ? ` ${company.kategori.toUpperCase()}` : ""
@@ -55,7 +57,7 @@ export const TandaTerimaModal = ({
       .toLowerCase()}-${trx.id.slice(0, 6)}.pdf`;
 
   const handleShare = async () => {
-    setGenerating(true);
+    setIsSharing(true);
     try {
       const doc = await generateTandaTerimaPDF(trx, notas, company, bank);
       await sharePDF(doc, buildFilename(), headerTitle);
@@ -63,22 +65,49 @@ export const TandaTerimaModal = ({
       console.error(e);
       toast.error("Gagal membuat PDF");
     } finally {
-      setGenerating(false);
+      setIsSharing(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      const doc = await generateTandaTerimaPDF(trx, notas, company, bank);
+      const file = pdfToBlob(doc);
+      const url = URL.createObjectURL(file);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = buildFilename();
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      toast.error("Gagal mendownload PDF");
+    } finally {
+      setIsDownloading(false);
     }
   };
 
   const handleSaveDrive = async () => {
-    setGenerating(true);
+    setIsSavingDrive(true);
     try {
       const year = new Date(trx.created_at).getFullYear();
       const customerName = trx.customer || "UNKNOWN";
       const doc = await generateTandaTerimaPDF(trx, notas, company, bank);
-      // We don't use company?.drive_folder_id anymore based on the final decision (upload to root)
-      await uploadPDFToDriveStructured(doc, buildFilename(), customerName, year, null);
+      const result = await uploadPDFToDriveStructured(doc, buildFilename(), customerName, year, null);
+      if (result?.id) {
+        // Save to DB
+        await supabase
+          .from("transactions")
+          .update({ drive_file_id: result.id })
+          .eq("id", trx.id);
+        if (trx) trx.drive_file_id = result.id; // local update
+      }
     } catch (e) {
       console.error(e);
     } finally {
-      setGenerating(false);
+      setIsSavingDrive(false);
     }
   };
 
@@ -236,10 +265,10 @@ export const TandaTerimaModal = ({
         <div className="grid grid-cols-2 gap-2 pt-3">
           <Button
             onClick={handleShare}
-            disabled={generating}
+            disabled={isSharing}
             className="bg-ink text-paper hover:bg-ink/90 rounded-none uppercase tracking-widest text-xs font-bold"
           >
-            {generating ? (
+            {isSharing ? (
               <Loader2 className="w-4 h-4 mr-1 animate-spin" />
             ) : (
               <Share2 className="w-4 h-4 mr-1" />
@@ -247,38 +276,29 @@ export const TandaTerimaModal = ({
             Bagikan
           </Button>
           <Button
-            onClick={async () => {
-              setGenerating(true);
-              try {
-                const doc = await generateTandaTerimaPDF(trx, notas, company, bank);
-                doc.save(buildFilename());
-              } catch (e) {
-                toast.error("Gagal membuat PDF");
-              } finally {
-                setGenerating(false);
-              }
-            }}
-            disabled={generating}
+            onClick={handleDownload}
+            disabled={isDownloading}
             variant="outline"
             className="border-2 rounded-none uppercase tracking-widest text-xs font-bold"
           >
-            {generating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
+            {isDownloading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
             Download
           </Button>
         </div>
         <div className="grid grid-cols-1 gap-2 pt-1">
           <Button
             onClick={handleSaveDrive}
-            disabled={generating}
+            disabled={isSavingDrive}
             variant="outline"
-            className="border-2 rounded-none uppercase tracking-widest text-xs font-bold"
+            className={`border-2 rounded-none uppercase tracking-widest text-xs font-bold ${trx.drive_file_id ? 'border-success text-success hover:bg-success hover:text-paper' : ''}`}
             title={
               company?.drive_folder_id
                 ? `Simpan ke folder: ${company.drive_folder_name || "Drive"}`
                 : "Simpan ke Google Drive (root)"
             }
           >
-            <Cloud className="w-4 h-4 mr-1" /> Drive
+            {isSavingDrive ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Cloud className="w-4 h-4 mr-1" />}
+            {trx.drive_file_id ? "Sudah Tersimpan di Drive" : "Simpan ke Drive"}
           </Button>
         </div>
         {trx.status !== "selesai" && (
@@ -291,7 +311,7 @@ export const TandaTerimaModal = ({
             <Button
               onClick={handleFinalize}
               disabled={!trx.bukti_tf_url}
-              className="bg-success text-success-foreground hover:bg-success/90 rounded-none uppercase tracking-widest text-xs font-bold w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-success text-success-foreground hover:bg-success/90 rounded-none uppercase tracking-widest text-xs font-bold w-full disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               <Check className="w-4 h-4 mr-1" /> Tandai Selesai
             </Button>

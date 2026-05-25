@@ -77,6 +77,13 @@ export const EditNotaModal = ({ nota, open, onOpenChange, onSaved }: Props) => {
     }
   }, [open, nota]);
 
+  // Auto match divisi from kode_nota
+  useEffect(() => {
+    if (!form?.kode_nota || divisi.id) return;
+    const hit = findDivisiByKode(divisiList, form.kode_nota);
+    if (hit) setDivisi({ id: hit.id, nama: hit.nama });
+  }, [form?.kode_nota, divisiList]);
+
   const updateField = <K extends keyof EditForm>(k: K, v: EditForm[K]) => {
     setForm((f) => (f ? { ...f, [k]: v } : f));
   };
@@ -265,7 +272,11 @@ export const EditNotaModal = ({ nota, open, onOpenChange, onSaved }: Props) => {
           </div>
 
           {/* Divisi */}
-          <DivisiSelect value={divisi} onChange={setDivisi} />
+          <DivisiSelect 
+            value={divisi} 
+            onChange={setDivisi} 
+            disabled={!!findDivisiByKode(divisiList, form.kode_nota)} 
+          />
 
           {/* Tanggal & Total */}
           <div className="grid grid-cols-2 gap-2">

@@ -413,7 +413,11 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
                 className="rounded-none border-2 border-paper-edge bg-paper uppercase"
               />
             </div>
-            <DivisiSelect value={divisi} onChange={setDivisi} />
+            <DivisiSelect 
+              value={divisi} 
+              onChange={setDivisi} 
+              disabled={!!findDivisiByKode(divisiList, parsed.kode_nota)} 
+            />
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label className="label">Tanggal</Label>

@@ -69,6 +69,9 @@ export type Transaction = {
   bukti_tf_url: string | null;
   tanggal_tf: string | null;
   group_id: string | null;
+  metode_tf: string | null;
+  catatan_tf: string | null;
+  drive_file_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -80,6 +83,9 @@ export type TransactionGroup = {
   tanggal_tf: string | null;
   company_id: string | null;
   bank_id: string | null;
+  metode_tf: string | null;
+  catatan_tf: string | null;
+  drive_file_id: string | null;
   created_at: string;
   updated_at: string;
 };

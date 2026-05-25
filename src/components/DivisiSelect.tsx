@@ -32,9 +32,11 @@ export const fetchDivisiList = async (): Promise<Divisi[]> => {
 export const DivisiSelect = ({
   value,
   onChange,
+  disabled,
 }: {
   value: { id: string | null; nama: string | null };
   onChange: (v: { id: string | null; nama: string | null }) => void;
+  disabled?: boolean;
 }) => {
   const [list, setList] = useState<Divisi[]>([]);
   const [adding, setAdding] = useState(false);
@@ -101,7 +103,8 @@ export const DivisiSelect = ({
             const d = list.find((x) => x.id === id);
             onChange({ id, nama: d?.nama || null });
           }}
-          className="flex-1 border-2 border-paper-edge bg-paper px-2 py-2 text-sm uppercase rounded-none"
+          className="flex-1 border-2 border-paper-edge bg-paper px-2 py-2 text-sm uppercase rounded-none disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={disabled}
         >
           <option value="">— Pilih divisi —</option>
           {list.map((d) => (

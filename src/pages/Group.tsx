@@ -38,7 +38,9 @@ export default function GroupPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [generating, setGenerating] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [isSavingDrive, setIsSavingDrive] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const load = async () => {
     if (!id) return;
@@ -159,7 +161,7 @@ export default function GroupPage() {
 
   const handleDownload = async () => {
     if (!group) return;
-    setGenerating(true);
+    setIsDownloading(true);
     try {
       const doc = await generateTandaTerimaGroupPDF(group, trxList, notasByTrx, company, bank);
       doc.save(`tanda-terima-gabungan-${group.id.slice(0, 6)}.pdf`);
@@ -167,23 +169,27 @@ export default function GroupPage() {
       console.error(e);
       toast.error("Gagal membuat PDF");
     } finally {
-      setGenerating(false);
+      setIsDownloading(false);
     }
   };
 
   const handleSaveDrive = async () => {
     if (!group) return;
-    setGenerating(true);
+    setIsSavingDrive(true);
     try {
       const year = new Date(group.created_at).getFullYear();
-      // Gunakan nama customer dari transaksi (bukan nama group) untuk path Drive
       const customerName = trxList[0]?.customer || group.nama || "GROUP";
       const doc = await generateTandaTerimaGroupPDF(group, trxList, notasByTrx, company, bank);
-      await uploadPDFToDriveStructured(doc, `tanda-terima-gabungan-${group.id.slice(0, 6)}.pdf`, customerName, year, null);
+      const filename = `tanda-terima-gabungan-${group.id.slice(0, 6)}.pdf`;
+      const result = await uploadPDFToDriveStructured(doc, filename, customerName, year, null);
+      if (result?.id) {
+        await supabase.from("transaction_groups").update({ drive_file_id: result.id }).eq("id", group.id);
+        setGroup({ ...group, drive_file_id: result.id });
+      }
     } catch (e) {
       console.error(e);
     } finally {
-      setGenerating(false);
+      setIsSavingDrive(false);
     }
   };
 
@@ -249,10 +255,9 @@ export default function GroupPage() {
               <div className="label mb-1">Nama Group</div>
               <Input
                 value={group.nama || ""}
-                onChange={(e) => updateGroup({ nama: e.target.value })}
-                placeholder="Misal: Bayar bulan Mei"
-                className="rounded-none border-2 border-paper-edge bg-paper"
-                disabled={true}
+                onChange={(e) => updateGroup({ nama: e.target.value.toUpperCase() })}
+                placeholder="Misal: BAYAR BULAN MEI"
+                className="rounded-none border-2 border-paper-edge bg-paper uppercase font-bold"
               />
             </div>
 
@@ -322,11 +327,6 @@ export default function GroupPage() {
               </div>
             </div>
 
-            <BankCard
-              selectedId={group.bank_id}
-              onSelect={(bank_id) => updateGroup({ bank_id })}
-            />
-
             <div className="paper p-4">
               <div className="label mb-2">Bukti Transfer (1 untuk semua)</div>
               {group.bukti_tf_url ? (
@@ -334,18 +334,44 @@ export default function GroupPage() {
                   <div className="border-2 border-paper-edge p-1 relative">
                     <img src={group.bukti_tf_url} alt="Bukti" className="w-full max-h-56 object-contain" />
                     <button
-                      onClick={() => updateGroup({ bukti_tf_url: null, tanggal_tf: null })}
+                      onClick={() => updateGroup({ bukti_tf_url: null, tanggal_tf: null, metode_tf: null, catatan_tf: null })}
                       className="absolute top-1 right-1 bg-paper border border-ink p-1 hover:bg-destructive hover:text-paper"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </div>
-                  <Input
-                    type="date"
-                    value={group.tanggal_tf || ""}
-                    onChange={(e) => updateGroup({ tanggal_tf: e.target.value || null })}
-                    className="rounded-none border-2 border-paper-edge bg-paper h-9"
-                  />
+                  <div>
+                    <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">Tanggal Transfer</label>
+                    <Input
+                      type="date"
+                      value={group.tanggal_tf || ""}
+                      onChange={(e) => updateGroup({ tanggal_tf: e.target.value || null })}
+                      className="rounded-none border-2 border-paper-edge bg-paper h-9"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">Metode Pembayaran</label>
+                    <select
+                      value={group.metode_tf || ""}
+                      onChange={(e) => updateGroup({ metode_tf: e.target.value || null })}
+                      className="w-full rounded-none border-2 border-paper-edge bg-paper h-9 px-2 text-sm"
+                    >
+                      <option value="">-- Pilih Metode --</option>
+                      <option value="Transfer">Transfer</option>
+                      <option value="Tunai">Tunai</option>
+                      <option value="Giro">Giro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">Catatan</label>
+                    <textarea
+                      value={group.catatan_tf || ""}
+                      onChange={(e) => updateGroup({ catatan_tf: e.target.value || null })}
+                      rows={2}
+                      className="w-full rounded-none border-2 border-paper-edge bg-paper p-2 text-sm"
+                      placeholder="Catatan tambahan..."
+                    />
+                  </div>
                 </div>
               ) : (
                 <label className="w-full border-2 border-dashed border-paper-edge p-6 flex flex-col items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground hover:border-ink hover:text-ink cursor-pointer">
@@ -549,46 +575,46 @@ export default function GroupPage() {
           <div className="grid grid-cols-2 gap-2 pt-3">
             <Button
               onClick={async () => {
-                setGenerating(true);
+                setIsSharing(true);
                 try {
                   const doc = await generateTandaTerimaGroupPDF(group, trxList, notasByTrx, company, bank);
                   await sharePDF(doc, `tanda-terima-gabungan-${group.id.slice(0, 6)}.pdf`, headerTitle);
                 } catch (e) {
                   toast.error("Gagal berbagi PDF");
                 } finally {
-                  setGenerating(false);
+                  setIsSharing(false);
                 }
               }}
-              disabled={generating}
+              disabled={isSharing}
               className="bg-ink text-paper hover:bg-ink/90 rounded-none uppercase tracking-widest text-xs font-bold"
             >
-              {generating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Share2 className="w-4 h-4 mr-1" />}
+              {isSharing ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Share2 className="w-4 h-4 mr-1" />}
               Bagikan
             </Button>
             <Button
               onClick={handleDownload}
-              disabled={generating}
+              disabled={isDownloading}
               variant="outline"
               className="border-2 rounded-none uppercase tracking-widest text-xs font-bold"
             >
-              {generating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
+              {isDownloading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
               Cetak PDF
             </Button>
           </div>
           <div className="grid grid-cols-1 gap-2 pt-1">
             <Button
               onClick={handleSaveDrive}
-              disabled={generating}
+              disabled={isSavingDrive}
               variant="outline"
-              className="border-2 rounded-none uppercase tracking-widest text-xs font-bold text-[#1fa463] border-[#1fa463] hover:bg-[#1fa463] hover:text-white"
+              className={`border-2 rounded-none uppercase tracking-widest text-xs font-bold ${group.drive_file_id ? 'border-success text-success hover:bg-success hover:text-paper' : ''}`}
             >
-              {generating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : null}
-              Drive
+              {isSavingDrive ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Cloud className="w-4 h-4 mr-1" />}
+              {group.drive_file_id ? "Sudah Tersimpan di Drive" : "Simpan ke Drive"}
             </Button>
             <Button
               onClick={handleFinalize}
               disabled={!group.bukti_tf_url || trxList.length === 0}
-              className="bg-success text-success-foreground hover:bg-success/90 rounded-none uppercase tracking-widest text-xs font-bold"
+              className="bg-success text-success-foreground hover:bg-success/90 rounded-none uppercase tracking-widest text-xs font-bold mt-2"
             >
               <Check className="w-4 h-4 mr-1" /> Tandai Semua Selesai
             </Button>

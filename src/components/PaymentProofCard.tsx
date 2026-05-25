@@ -14,7 +14,9 @@ export const PaymentProofCard = ({
   trxId: string;
   buktiUrl: string | null;
   tanggalTf: string | null;
-  onUpdate: (patch: { bukti_tf_url?: string | null; tanggal_tf?: string | null }) => void;
+  metodeTf: string | null;
+  catatanTf: string | null;
+  onUpdate: (patch: { bukti_tf_url?: string | null; tanggal_tf?: string | null; metode_tf?: string | null; catatan_tf?: string | null }) => void;
 }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -53,12 +55,28 @@ export const PaymentProofCard = ({
       .eq("id", trxId);
   };
 
-  const handleRemove = async () => {
-    if (!confirm("Hapus bukti transfer?")) return;
-    onUpdate({ bukti_tf_url: null, tanggal_tf: null });
+  const handleMetodeChange = async (val: string) => {
+    onUpdate({ metode_tf: val || null });
     await supabase
       .from("transactions")
-      .update({ bukti_tf_url: null, tanggal_tf: null, updated_at: new Date().toISOString() })
+      .update({ metode_tf: val || null, updated_at: new Date().toISOString() })
+      .eq("id", trxId);
+  };
+
+  const handleCatatanChange = async (val: string) => {
+    onUpdate({ catatan_tf: val || null });
+    await supabase
+      .from("transactions")
+      .update({ catatan_tf: val || null, updated_at: new Date().toISOString() })
+      .eq("id", trxId);
+  };
+
+  const handleRemove = async () => {
+    if (!confirm("Hapus bukti transfer?")) return;
+    onUpdate({ bukti_tf_url: null, tanggal_tf: null, metode_tf: null, catatan_tf: null });
+    await supabase
+      .from("transactions")
+      .update({ bukti_tf_url: null, tanggal_tf: null, metode_tf: null, catatan_tf: null, updated_at: new Date().toISOString() })
       .eq("id", trxId);
   };
 
@@ -87,6 +105,30 @@ export const PaymentProofCard = ({
               value={tanggalTf || ""}
               onChange={(e) => handleDateChange(e.target.value)}
               className="rounded-none border-2 border-paper-edge bg-paper h-9"
+            />
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground mt-2 block">
+              Metode Pembayaran
+            </label>
+            <select
+              value={metodeTf || ""}
+              onChange={(e) => handleMetodeChange(e.target.value)}
+              className="w-full rounded-none border-2 border-paper-edge bg-paper h-9 px-2 text-sm"
+            >
+              <option value="">-- Pilih Metode --</option>
+              <option value="Transfer">Transfer</option>
+              <option value="Tunai">Tunai</option>
+              <option value="Giro">Giro</option>
+            </select>
+            
+            <label className="text-[10px] uppercase tracking-widest text-muted-foreground mt-2 block">
+              Catatan
+            </label>
+            <textarea
+              value={catatanTf || ""}
+              onChange={(e) => handleCatatanChange(e.target.value)}
+              rows={2}
+              className="w-full rounded-none border-2 border-paper-edge bg-paper p-2 text-sm"
+              placeholder="Catatan tambahan..."
             />
           </div>
         </div>

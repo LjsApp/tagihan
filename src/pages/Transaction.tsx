@@ -309,9 +309,9 @@ const TransactionPage = () => {
                   <div key={n.id} className="paper p-3">
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 text-xs">
-                          <span className="font-bold">{n.full_no || n.no_nota || "-"}</span>
-                          <span className="text-muted-foreground">{formatTanggal(n.tanggal)}</span>
+                        <div className="flex items-start justify-between gap-2 text-xs">
+                          <span className="font-bold break-all leading-tight">{n.full_no || n.no_nota || "-"}</span>
+                          <span className="text-muted-foreground whitespace-nowrap shrink-0">{formatTanggal(n.tanggal)}</span>
                         </div>
                         <div className="text-sm uppercase truncate">{n.nama_customer || "-"}</div>
                         <div className="text-xs text-muted-foreground">
@@ -457,6 +457,8 @@ const TransactionPage = () => {
               trxId={trx.id}
               buktiUrl={trx.bukti_tf_url}
               tanggalTf={trx.tanggal_tf}
+              metodeTf={trx.metode_tf}
+              catatanTf={trx.catatan_tf}
               onUpdate={(patch) => setTrx((t) => (t ? { ...t, ...patch } as Transaction : t))}
             />
 
