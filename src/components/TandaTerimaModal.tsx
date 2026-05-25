@@ -47,15 +47,18 @@ export const TandaTerimaModal = ({
   const [isSharing, setIsSharing] = useState(false);
   const [isSavingDrive, setIsSavingDrive] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [driveCopyCount, setDriveCopyCount] = useState(trx.drive_file_id ? 2 : 0);
 
   const headerTitle = `PERINCIAN TAGIHAN${
     company?.kategori ? ` ${company.kategori.toUpperCase()}` : ""
   }${company?.nama ? ` ${company.nama.toUpperCase()}` : ""}`;
 
-  const buildFilename = () =>
-    `tanda-terima-${(company?.nama || trx.customer || "nota")
+  const buildFilename = (copyN?: number) => {
+    const base = `tanda-terima-${(company?.nama || trx.customer || "nota")
       .replace(/\s+/g, "-")
-      .toLowerCase()}-${trx.id.slice(0, 6)}.pdf`;
+      .toLowerCase()}-${trx.id.slice(0, 6)}`;
+    return copyN && copyN >= 2 ? `${base}-(copy-${copyN}).pdf` : `${base}.pdf`;
+  };
 
   const handleShare = async () => {
     setIsSharing(true);
@@ -96,7 +99,9 @@ export const TandaTerimaModal = ({
       const year = new Date(trx.created_at).getFullYear();
       const customerName = trx.customer || "UNKNOWN";
       const doc = await generateTandaTerimaPDF(trx, notas, company, bank);
-      const result = await uploadPDFToDriveStructured(doc, buildFilename(), customerName, year, null);
+      // If already saved before, version the filename with copy-N
+      const filename = buildFilename(driveCopyCount >= 2 ? driveCopyCount : undefined);
+      const result = await uploadPDFToDriveStructured(doc, filename, customerName, year, null);
       if (result?.id) {
         // Save to DB
         await supabase
@@ -104,6 +109,7 @@ export const TandaTerimaModal = ({
           .update({ drive_file_id: result.id })
           .eq("id", trx.id);
         if (trx) trx.drive_file_id = result.id; // local update
+        setDriveCopyCount(prev => prev === 0 ? 2 : prev + 1);
       }
     } catch (e) {
       console.error(e);

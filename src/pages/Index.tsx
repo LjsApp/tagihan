@@ -241,9 +241,13 @@ const Index = () => {
                           <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
                             {formatTanggal(g.created_at)}
                           </span>
-                          {g.drive_file_id && (
+                          {g.drive_file_id ? (
                             <span className="text-[9px] uppercase tracking-widest font-bold text-success flex items-center gap-0.5">
-                              <Cloud className="w-3 h-3" /> DRIVE
+                              <Cloud className="w-3 h-3" /> DRIVE ✓
+                            </span>
+                          ) : (
+                            <span className="text-[9px] uppercase tracking-widest text-muted-foreground flex items-center gap-0.5 border border-dashed border-muted-foreground px-1">
+                              <Cloud className="w-3 h-3" /> BELUM DI DRIVE
                             </span>
                           )}
                         </div>
@@ -300,9 +304,13 @@ const Index = () => {
                                   <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
                                     {formatTanggal(t.created_at)}
                                   </span>
-                                  {t.drive_file_id && (
+                                  {t.drive_file_id ? (
                                     <span className="text-[9px] uppercase tracking-widest font-bold text-success flex items-center gap-0.5">
-                                      <Cloud className="w-3 h-3" /> DRIVE
+                                      <Cloud className="w-3 h-3" /> DRIVE ✓
+                                    </span>
+                                  ) : (
+                                    <span className="text-[9px] uppercase tracking-widest text-muted-foreground flex items-center gap-0.5 border border-dashed border-muted-foreground px-1">
+                                      <Cloud className="w-3 h-3" /> BELUM DI DRIVE
                                     </span>
                                   )}
                                 </div>
@@ -383,9 +391,13 @@ const Index = () => {
                       <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
                         {formatTanggal(t.created_at)}
                       </span>
-                      {t.drive_file_id && (
+                      {t.drive_file_id ? (
                         <span className="text-[9px] uppercase tracking-widest font-bold text-success flex items-center gap-0.5">
-                          <Cloud className="w-3 h-3" /> DRIVE
+                          <Cloud className="w-3 h-3" /> DRIVE ✓
+                        </span>
+                      ) : (
+                        <span className="text-[9px] uppercase tracking-widest text-muted-foreground flex items-center gap-0.5 border border-dashed border-muted-foreground px-1">
+                          <Cloud className="w-3 h-3" /> BELUM DI DRIVE
                         </span>
                       )}
                     </div>

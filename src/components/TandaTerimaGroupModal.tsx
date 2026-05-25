@@ -48,12 +48,18 @@ export const TandaTerimaGroupModal = ({
   const [isSharing, setIsSharing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSavingDrive, setIsSavingDrive] = useState(false);
+  const [driveCopyCount, setDriveCopyCount] = useState(group.drive_file_id ? 2 : 0);
+
+  const buildGroupFilename = (copyN?: number) => {
+    const base = `tanda-terima-gabungan-${group.id.slice(0, 6)}`;
+    return copyN && copyN >= 2 ? `${base}-(copy-${copyN}).pdf` : `${base}.pdf`;
+  };
 
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
       const doc = await generateTandaTerimaGroupPDF(group, trxList, notasByTrx, company, bank);
-      doc.save(`tanda-terima-gabungan-${group.id.slice(0, 6)}.pdf`);
+      doc.save(buildGroupFilename());
     } catch (e: any) {
       toast.error("Gagal cetak PDF: " + e.message);
     } finally {
@@ -71,8 +77,11 @@ export const TandaTerimaGroupModal = ({
       const doc = await generateTandaTerimaGroupPDF(group, trxList, notasByTrx, company, bank);
       const year = new Date().getFullYear();
       const customerName = group.nama || "GROUP";
-      const fileName = `[GABUNGAN] Tanda Terima ${headerTitle} - ${formatTanggalLong(new Date().toISOString())}.pdf`;
-      const result = await uploadPDFToDriveStructured(doc, fileName, customerName, year, null);
+      // If already saved before, version the filename with copy-N
+      const filename = `[GABUNGAN] Tanda Terima ${headerTitle} - ${formatTanggalLong(new Date().toISOString())}${
+        driveCopyCount >= 2 ? ` (copy-${driveCopyCount})` : ""
+      }.pdf`;
+      const result = await uploadPDFToDriveStructured(doc, filename, customerName, year, null);
       
       if (result?.id) {
         toast.success("Berhasil disimpan ke Google Drive");
@@ -82,6 +91,7 @@ export const TandaTerimaGroupModal = ({
           .eq("id", group.id);
           
         if (uErr) throw uErr;
+        setDriveCopyCount(prev => prev === 0 ? 2 : prev + 1);
         // Panggil onFinalized agar UI terupdate
         if (onFinalized) onFinalized();
       } else {
