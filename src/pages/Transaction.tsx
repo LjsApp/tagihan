@@ -307,7 +307,7 @@ const TransactionPage = () => {
               <div className="space-y-2">
                 {notas.map((n) => (
                   <div key={n.id} className="paper p-3">
-                    <div className="flex justify-between items-start gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 text-xs">
                           <span className="font-bold break-all leading-tight">{n.full_no || n.no_nota || "-"}</span>
@@ -319,9 +319,9 @@ const TransactionPage = () => {
                           {n.diskon_nota.persen > 0 && ` · disc ${n.diskon_nota.persen}%`}
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <div className="num">Rp {formatRp(n.netto)}</div>
-                        <div className="flex gap-1 mt-1 justify-end">
+                      <div className="flex flex-col items-start sm:items-end justify-start gap-2 sm:gap-1 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t-2 sm:border-t-0 border-dashed border-paper-edge w-full sm:w-auto shrink-0">
+                        <div className="num font-bold">Rp {formatRp(n.netto)}</div>
+                        <div className="flex gap-2">
                           <button
                             onClick={() => setDetailNota(n)}
                             className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-ink flex items-center gap-1"
@@ -338,7 +338,7 @@ const TransactionPage = () => {
                             onClick={() => handleRemoveNota(n.id)}
                             className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-1"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3 h-3" /> Hapus
                           </button>
                         </div>
                       </div>

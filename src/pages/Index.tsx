@@ -257,7 +257,7 @@ const Index = () => {
                           )}
                         </div>
                       </div>
-                      <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-1 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t-2 sm:border-t-0 border-dashed border-paper-edge w-full sm:w-auto shrink-0">
+                      <div className="flex flex-col items-start sm:items-end justify-start gap-2 sm:gap-1 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t-2 sm:border-t-0 border-dashed border-paper-edge w-full sm:w-auto shrink-0">
                         <div className="num text-sm sm:text-base font-bold flex items-center gap-2">
                           Rp {formatRp(total)}
                           {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
@@ -307,7 +307,7 @@ const Index = () => {
                                   JT: {formatTanggal(t.jatuh_tempo)} · {(t.nota_ids || []).length} nota
                                 </div>
                               </Link>
-                              <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-1 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t-2 sm:border-t-0 border-dashed border-paper-edge w-full sm:w-auto shrink-0">
+                              <div className="flex flex-col items-start sm:items-end justify-start gap-2 sm:gap-1 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t-2 sm:border-t-0 border-dashed border-paper-edge w-full sm:w-auto shrink-0">
                                 <div className="num text-xs font-bold">Rp {formatRp(t.total_akhir)}</div>
                                 <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                                   <PreviewTransactionButton
@@ -390,7 +390,7 @@ const Index = () => {
                       JT: {formatTanggal(t.jatuh_tempo)} · {(t.nota_ids || []).length} nota
                     </div>
                   </Link>
-                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-1 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t-2 sm:border-t-0 border-dashed border-paper-edge w-full sm:w-auto shrink-0">
+                  <div className="flex flex-col items-start sm:items-end justify-start gap-2 sm:gap-1 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t-2 sm:border-t-0 border-dashed border-paper-edge w-full sm:w-auto shrink-0">
                     <div className="num text-sm sm:text-base font-bold">Rp {formatRp(t.total_akhir)}</div>
                     <div className="flex gap-2">
                       <PreviewTransactionButton 
