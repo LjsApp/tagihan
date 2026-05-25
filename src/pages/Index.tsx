@@ -154,7 +154,7 @@ const Index = () => {
             </div>
 
             {/* Limit + Action Buttons in one row */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <select
                 value={limit}
                 onChange={e => setLimit(Number(e.target.value))}

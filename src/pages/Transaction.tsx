@@ -309,11 +309,13 @@ const TransactionPage = () => {
                   <div key={n.id} className="paper p-3">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 text-xs">
-                          <span className="font-bold break-all leading-tight">{n.full_no || n.no_nota || "-"}</span>
-                          <span className="text-muted-foreground whitespace-nowrap shrink-0">{formatTanggal(n.tanggal)}</span>
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-sm uppercase font-bold break-words">{n.nama_customer || "-"}</span>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">{formatTanggal(n.tanggal)}</span>
                         </div>
-                        <div className="text-sm uppercase truncate">{n.nama_customer || "-"}</div>
+                        <div className="text-xs break-all leading-tight text-ink/80 mt-0.5">
+                          {n.full_no || n.no_nota || "-"}
+                        </div>
                         <div className="text-xs text-muted-foreground">
                           {n.items.length} item
                           {n.diskon_nota.persen > 0 && ` · disc ${n.diskon_nota.persen}%`}
