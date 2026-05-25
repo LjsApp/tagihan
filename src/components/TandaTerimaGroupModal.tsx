@@ -141,10 +141,10 @@ export const TandaTerimaGroupModal = ({
                 </div>
                 <div className="space-y-0.5 text-[11px] mt-1">
                   {notas.map((n) => (
-                    <div key={n.id} className="grid grid-cols-[auto,1fr,auto] gap-x-2">
-                      <span>{formatTanggal(n.tanggal)}</span>
-                      <span className="truncate font-bold">{formatKodeNota(n)}</span>
-                      <span className="num text-right">{formatRp(n.netto)}</span>
+                    <div key={n.id} className="flex gap-x-2">
+                      <span className="shrink-0">{formatTanggal(n.tanggal)}</span>
+                      <span className="font-bold flex-1 break-all">{formatKodeNota(n)}</span>
+                      <span className="num text-right shrink-0">{formatRp(n.netto)}</span>
                     </div>
                   ))}
                   <div className="flex justify-between">
@@ -209,7 +209,7 @@ export const TandaTerimaGroupModal = ({
                         className="w-full h-32 object-cover"
                         style={{ filter: "grayscale(1) contrast(1.25) brightness(1.05)" }}
                       />
-                      <div className="text-[9px] uppercase tracking-widest text-center mt-1 font-bold">
+                      <div className="text-[9px] uppercase tracking-widest text-center mt-1 font-bold break-all">
                         {formatKodeNota(n)}
                       </div>
                     </div>
