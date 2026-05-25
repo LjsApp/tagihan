@@ -19,8 +19,6 @@ const Index = () => {
   
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "draft" | "selesai">("all");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
   const [limit, setLimit] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<"individual" | "group">("individual");
@@ -82,12 +80,30 @@ const Index = () => {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const toggleGroup = (id: string) => setExpandedGroups(p => ({ ...p, [id]: !p[id] }));
 
+  const searchLower = search.toLowerCase();
+  
   const filtered = transactions.filter((t) => {
     if (t.group_id) return false;
     if (statusFilter !== "all" && t.status !== statusFilter) return false;
-    if (search && !(t.customer || "").toLowerCase().includes(search.toLowerCase())) return false;
-    if (dateFrom && t.created_at < dateFrom) return false;
-    if (dateTo && t.created_at.slice(0, 10) > dateTo) return false;
+    if (search) {
+      const matchCustomer = (t.customer || "").toLowerCase().includes(searchLower);
+      const matchDate1 = formatTanggal(t.created_at).includes(searchLower);
+      const matchDate2 = formatTanggal(t.jatuh_tempo).includes(searchLower);
+      if (!matchCustomer && !matchDate1 && !matchDate2) return false;
+    }
+    return true;
+  });
+
+  const filteredGroups = groups.filter((g) => {
+    const status = g.bukti_tf_url ? "selesai" : "draft";
+    if (statusFilter !== "all" && status !== statusFilter) return false;
+    if (search) {
+      const trxInGroup = transactions.filter(t => t.group_id === g.id);
+      const matchName = (g.nama || "").toLowerCase().includes(searchLower);
+      const matchDate = formatTanggal(g.created_at).includes(searchLower);
+      const matchCustomers = trxInGroup.some(t => (t.customer || "").toLowerCase().includes(searchLower));
+      if (!matchName && !matchDate && !matchCustomers) return false;
+    }
     return true;
   });
 
@@ -96,7 +112,7 @@ const Index = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, statusFilter, dateFrom, dateTo, limit]);
+  }, [search, statusFilter, limit]);
 
   return (
     <div className="min-h-screen">
@@ -135,24 +151,6 @@ const Index = () => {
                   {s === "all" ? "Semua" : s}
                 </button>
               ))}
-            </div>
-
-            {/* Date filter row */}
-            <div className="flex items-center gap-1 border-2 border-paper-edge bg-paper px-2">
-              <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={e => setDateFrom(e.target.value)}
-                className="flex-1 border-none bg-transparent outline-none h-9 text-xs min-w-0"
-              />
-              <span className="text-muted-foreground text-xs">–</span>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={e => setDateTo(e.target.value)}
-                className="flex-1 border-none bg-transparent outline-none h-9 text-xs min-w-0"
-              />
             </div>
 
             {/* Limit + Action Buttons in one row */}
@@ -202,14 +200,14 @@ const Index = () => {
                 activeTab === "group" ? "border-ink text-ink bg-ink/5" : "border-transparent text-muted-foreground hover:text-ink hover:bg-ink/5"
               }`}
             >
-              Tagihan Group ({groups.length})
+              Tagihan Group ({filteredGroups.length})
             </button>
           </div>
         </div>
 
         {activeTab === "group" && (
           <div className="mb-4">
-            {groups.length === 0 ? (
+            {filteredGroups.length === 0 ? (
               <div className="paper p-12 text-center text-muted-foreground">
                 <Layers className="w-12 h-12 mx-auto mb-3 opacity-20" />
                 <div className="uppercase tracking-widest text-sm font-bold mb-1">Belum ada group</div>
@@ -217,7 +215,7 @@ const Index = () => {
               </div>
             ) : (
               <div className="grid gap-3">
-              {groups.map((g) => {
+              {filteredGroups.map((g) => {
                 const trxInGroup = transactions.filter(t => t.group_id === g.id);
                 const customers = Array.from(new Set(trxInGroup.map(t => t.customer).filter(Boolean)));
                 const total = trxInGroup.reduce((s, t) => s + Number(t.total_akhir || 0), 0);

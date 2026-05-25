@@ -211,7 +211,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-full max-w-lg paper rounded-none border-2 border-dashed border-paper-edge max-h-[92vh] overflow-y-auto overflow-x-hidden"
+        className="w-full max-w-2xl paper rounded-none border-2 border-dashed border-paper-edge max-h-[92vh] overflow-y-auto overflow-x-hidden"
         onInteractOutside={(e) => e.preventDefault()}
         onFocusOutside={(e) => e.preventDefault()}
       >
@@ -374,7 +374,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
                 </details>
               </div>
             )}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
                 <Label className="label">Kode</Label>
                 <Input
@@ -437,7 +437,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
                   : "Input kode nota untuk mengisi otomatis"}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
                 <Label className="label">Tanggal</Label>
                 <Input
@@ -495,7 +495,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
               ];
 
               return (
-                <div className="space-y-2 border-2 border-dashed border-paper-edge p-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 border-2 border-dashed border-paper-edge p-2 bg-ink/5">
                   {rows.map((r) => (
                     <div key={r.key} className="grid grid-cols-[1fr,1.4fr] gap-2 items-end">
                       <div>
