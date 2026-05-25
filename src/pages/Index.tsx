@@ -10,6 +10,8 @@ import { formatRp, formatTanggal, type Transaction } from "@/lib/nota";
 import { toast } from "sonner";
 
 import type { TransactionGroup } from "@/lib/nota";
+import { PreviewTransactionButton } from "@/components/PreviewTransactionButton";
+import { PreviewGroupButton } from "@/components/PreviewGroupButton";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -236,12 +238,20 @@ const Index = () => {
                           Rp {formatRp(total)}
                           {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
                         </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDeleteGroup(g.id); }}
-                          className="text-[9px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-1"
-                        >
-                          <Trash2 className="w-3 h-3" /> Hapus
-                        </button>
+                        <div className="flex gap-2 mt-1" onClick={e => e.stopPropagation()}>
+                          <PreviewGroupButton 
+                            group={g} 
+                            variant="outline" 
+                            className="text-[9px] uppercase tracking-widest h-6 px-2 rounded-none border-ink"
+                            onFinalized={() => queryClient.invalidateQueries({ queryKey: ["dashboardData"] })}
+                          />
+                          <button
+                            onClick={() => handleDeleteGroup(g.id)}
+                            className="text-[9px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3 h-3" /> Hapus
+                          </button>
+                        </div>
                       </div>
                     </div>
                     
@@ -250,13 +260,25 @@ const Index = () => {
                       <div className="mt-3 pt-3 border-t-2 border-dashed border-paper-edge grid gap-2 pl-4 border-l-2 border-ink/20">
                         {trxInGroup.map(t => (
                           <Link key={t.id} to={`/transaksi/${t.id}`} className="paper p-2 hover:border-ink transition-colors flex items-center justify-between text-xs min-w-0">
-                            <div className="min-w-0 truncate pr-2">
+                            <div className="min-w-0 truncate pr-2 flex-1">
                               <div className="font-bold uppercase truncate">{t.customer || "(Tanpa nama)"}</div>
                               <div className="text-[10px] text-muted-foreground truncate">
                                 {formatTanggal(t.created_at)} · {(t.nota_ids || []).length} nota
                               </div>
                             </div>
-                            <div className="num font-bold shrink-0">Rp {formatRp(t.total_akhir)}</div>
+                            <div className="flex flex-col items-end gap-1 shrink-0">
+                              <div className="num font-bold">Rp {formatRp(t.total_akhir)}</div>
+                              <div onClick={e => e.stopPropagation()}>
+                                <PreviewTransactionButton 
+                                  trx={t} 
+                                  disabled={!t.nota_ids || t.nota_ids.length === 0}
+                                  variant="outline"
+                                  className="text-[9px] uppercase tracking-widest h-5 px-1.5 rounded-none"
+                                >
+                                  Preview
+                                </PreviewTransactionButton>
+                              </div>
+                            </div>
                           </Link>
                         ))}
                       </div>
@@ -318,12 +340,22 @@ const Index = () => {
                   </Link>
                   <div className="text-right shrink-0 flex flex-col items-end gap-1">
                     <div className="num text-sm sm:text-base font-bold">Rp {formatRp(t.total_akhir)}</div>
-                    <button
-                      onClick={() => handleDelete(t.id)}
-                      className="text-[9px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-1"
-                    >
-                      <Trash2 className="w-3 h-3" /> Hapus
-                    </button>
+                    <div className="flex gap-2 mt-1">
+                      <PreviewTransactionButton 
+                        trx={t} 
+                        disabled={!t.nota_ids || t.nota_ids.length === 0}
+                        variant="outline"
+                        className="text-[9px] uppercase tracking-widest h-6 px-2 rounded-none border-ink"
+                      >
+                        Preview
+                      </PreviewTransactionButton>
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(t.id); }}
+                        className="text-[9px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" /> Hapus
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
