@@ -5,6 +5,14 @@ import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { CompanyCard } from "@/components/CompanyCard";
 import { BankCard } from "@/components/BankCard";
 import { ArrowLeft, Check, Download, Image as ImageIcon, Loader2, Plus, Share2, Trash2, Upload, X, Cloud } from "lucide-react";
@@ -243,12 +251,25 @@ export default function GroupPage() {
     <div className="min-h-screen pb-24">
       <AppHeader />
       <main className="max-w-6xl mx-auto px-4 py-5">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1 text-xs uppercase tracking-widest text-muted-foreground hover:text-ink mb-3"
-        >
-          <ArrowLeft className="w-3 h-3" /> Daftar transaksi
-        </Link>
+        <Breadcrumb className="mb-4 text-[10px] sm:text-xs uppercase tracking-widest font-bold">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">Daftar Transaksi</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/?tab=group">Tagihan Group</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Detail Group</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
         <div className="grid lg:grid-cols-[1fr,360px] gap-5">
           <div>

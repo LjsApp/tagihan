@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,14 @@ const Index = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "draft" | "selesai">("all");
   const [limit, setLimit] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<"individual" | "group">("individual");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") === "group" ? "group" : "individual";
+  const setActiveTab = (t: "individual" | "group") => {
+    setSearchParams(prev => {
+      prev.set("tab", t);
+      return prev;
+    }, { replace: true });
+  };
 
   const { data, isLoading: loading } = useQuery({
     queryKey: ["dashboardData"],

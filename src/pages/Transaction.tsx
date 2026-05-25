@@ -15,6 +15,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import {
   ArrowLeft,
   Camera,
   Eye,
@@ -54,6 +62,7 @@ const TransactionPage = () => {
   const [terimaOpen, setTerimaOpen] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [banks, setBanks] = useState<Bank[]>([]);
+  const [groupName, setGroupName] = useState<string | null>(null);
 
   const loadCompaniesBanks = async () => {
     const [{ data: cs }, { data: bs }] = await Promise.all([
@@ -98,6 +107,17 @@ const TransactionPage = () => {
       return;
     }
     const trxData = t as unknown as Transaction;
+    setTrx(trxData);
+    
+    if (trxData.group_id) {
+      const { data: g } = await supabase
+        .from("transaction_groups")
+        .select("nama")
+        .eq("id", trxData.group_id)
+        .maybeSingle();
+      if (g) setGroupName(g.nama || "(Tanpa nama)");
+    }
+    
     let loadedNotas: Nota[] = [];
     if (trxData.nota_ids.length > 0) {
       const { data: ns } = await supabase
@@ -246,12 +266,41 @@ const TransactionPage = () => {
     <div className="min-h-screen pb-24 lg:pb-6">
       <AppHeader />
       <main className="max-w-6xl mx-auto px-4 py-5">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1 text-xs uppercase tracking-widest text-muted-foreground hover:text-ink mb-3"
-        >
-          <ArrowLeft className="w-3 h-3" /> Daftar transaksi
-        </Link>
+        <Breadcrumb className="mb-4 text-[10px] sm:text-xs uppercase tracking-widest font-bold">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">Daftar Transaksi</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            {trx.group_id ? (
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to="/?tab=group">Tagihan Group</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to={`/group/${trx.group_id}`}>{groupName || `Group ${trx.group_id.slice(0, 4)}`}</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            ) : (
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to="/?tab=individual">Tagihan Individual</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            )}
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Detail Transaksi</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
         <div className="grid lg:grid-cols-[1fr,360px] gap-5">
           {/* LEFT */}
