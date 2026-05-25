@@ -8,7 +8,7 @@ import { Upload, Loader2, Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatRp } from "@/lib/nota";
 import { RupiahInput } from "@/components/RupiahInput";
-import { DivisiSelect, fetchDivisiList, type Divisi } from "@/components/DivisiSelect";
+import { DivisiSelect, fetchDivisiList, findDivisiByKode, type Divisi } from "@/components/DivisiSelect";
 import { toast } from "sonner";
 
 type EditForm = {

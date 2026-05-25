@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CompanyCard } from "@/components/CompanyCard";
 import { BankCard } from "@/components/BankCard";
-import { ArrowLeft, Check, Download, Image as ImageIcon, Loader2, Plus, Share2, Trash2, Upload, X } from "lucide-react";
+import { ArrowLeft, Check, Download, Image as ImageIcon, Loader2, Plus, Share2, Trash2, Upload, X, Cloud } from "lucide-react";
 import {
   formatKodeNota,
   formatRp,

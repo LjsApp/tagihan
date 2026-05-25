@@ -20,6 +20,7 @@ import { generateTandaTerimaPDF } from "@/lib/pdf";
 import {
   sharePDF,
   uploadPDFToDriveStructured,
+  pdfToBlob,
 } from "@/lib/pdfShare";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";

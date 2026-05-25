@@ -156,9 +156,12 @@ export type Database = {
         Row: {
           bank_id: string | null
           bukti_tf_url: string | null
+          catatan_tf: string | null
           company_id: string | null
           created_at: string
+          drive_file_id: string | null
           id: string
+          metode_tf: string | null
           nama: string | null
           tanggal_tf: string | null
           updated_at: string
@@ -166,9 +169,12 @@ export type Database = {
         Insert: {
           bank_id?: string | null
           bukti_tf_url?: string | null
+          catatan_tf?: string | null
           company_id?: string | null
           created_at?: string
+          drive_file_id?: string | null
           id?: string
+          metode_tf?: string | null
           nama?: string | null
           tanggal_tf?: string | null
           updated_at?: string
@@ -176,9 +182,12 @@ export type Database = {
         Update: {
           bank_id?: string | null
           bukti_tf_url?: string | null
+          catatan_tf?: string | null
           company_id?: string | null
           created_at?: string
+          drive_file_id?: string | null
           id?: string
+          metode_tf?: string | null
           nama?: string | null
           tanggal_tf?: string | null
           updated_at?: string
@@ -189,13 +198,16 @@ export type Database = {
         Row: {
           bank_id: string | null
           bukti_tf_url: string | null
+          catatan_tf: string | null
           company_id: string | null
           created_at: string
           customer: string | null
           diskon_manual: Json
+          drive_file_id: string | null
           group_id: string | null
           id: string
           jatuh_tempo: string | null
+          metode_tf: string | null
           nota_ids: string[]
           potongan_lain: Json
           status: string
@@ -207,13 +219,16 @@ export type Database = {
         Insert: {
           bank_id?: string | null
           bukti_tf_url?: string | null
+          catatan_tf?: string | null
           company_id?: string | null
           created_at?: string
           customer?: string | null
           diskon_manual?: Json
+          drive_file_id?: string | null
           group_id?: string | null
           id?: string
           jatuh_tempo?: string | null
+          metode_tf?: string | null
           nota_ids?: string[]
           potongan_lain?: Json
           status?: string
@@ -225,13 +240,16 @@ export type Database = {
         Update: {
           bank_id?: string | null
           bukti_tf_url?: string | null
+          catatan_tf?: string | null
           company_id?: string | null
           created_at?: string
           customer?: string | null
           diskon_manual?: Json
+          drive_file_id?: string | null
           group_id?: string | null
           id?: string
           jatuh_tempo?: string | null
+          metode_tf?: string | null
           nota_ids?: string[]
           potongan_lain?: Json
           status?: string
