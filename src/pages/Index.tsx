@@ -23,6 +23,7 @@ const Index = () => {
   const [dateTo, setDateTo] = useState("");
   const [limit, setLimit] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState<"individual" | "group">("individual");
 
   const { data, isLoading: loading } = useQuery({
     queryKey: ["dashboardData"],
@@ -185,12 +186,37 @@ const Index = () => {
             </div>
           </div>
 
+          {/* Tabs for Individual vs Group */}
+          <div className="flex border-b-2 border-paper-edge mt-2">
+            <button
+              onClick={() => setActiveTab("individual")}
+              className={`flex-1 py-3 text-xs uppercase tracking-widest font-bold transition-colors border-b-4 ${
+                activeTab === "individual" ? "border-ink text-ink bg-ink/5" : "border-transparent text-muted-foreground hover:text-ink hover:bg-ink/5"
+              }`}
+            >
+              Tagihan Individual
+            </button>
+            <button
+              onClick={() => setActiveTab("group")}
+              className={`flex-1 py-3 text-xs uppercase tracking-widest font-bold transition-colors border-b-4 ${
+                activeTab === "group" ? "border-ink text-ink bg-ink/5" : "border-transparent text-muted-foreground hover:text-ink hover:bg-ink/5"
+              }`}
+            >
+              Tagihan Group ({groups.length})
+            </button>
+          </div>
         </div>
 
-        {groups.length > 0 && (
-          <div className="paper p-3 sm:p-4 mb-4">
-            <div className="label mb-2 text-[10px] sm:text-xs">Group Pembayaran ({groups.length})</div>
-            <div className="grid gap-2">
+        {activeTab === "group" && (
+          <div className="mb-4">
+            {groups.length === 0 ? (
+              <div className="paper p-12 text-center text-muted-foreground">
+                <Layers className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                <div className="uppercase tracking-widest text-sm font-bold mb-1">Belum ada group</div>
+                <p className="text-xs mb-4">Buat group baru untuk menggabungkan tagihan.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
               {groups.map((g) => {
                 const trxInGroup = transactions.filter(t => t.group_id === g.id);
                 const customers = Array.from(new Set(trxInGroup.map(t => t.customer).filter(Boolean)));
@@ -310,11 +336,15 @@ const Index = () => {
                   </div>
                 );
               })}
-            </div>
+              </div>
+            )}
           </div>
         )}
-        {loading ? (
-          <div className="text-center py-12 text-muted-foreground uppercase tracking-widest text-xs">
+
+        {activeTab === "individual" && (
+          <>
+            {loading ? (
+              <div className="text-center py-12 text-muted-foreground uppercase tracking-widest text-xs">
             Memuat...
           </div>
         ) : filtered.length === 0 ? (
@@ -418,7 +448,7 @@ const Index = () => {
                 </Button>
               </div>
             )}
-          </div>
+          </>
         )}
       </main>
     </div>

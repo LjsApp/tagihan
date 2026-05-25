@@ -97,7 +97,7 @@ export const DivisiSelect = ({
       <Label className="label">Divisi</Label>
       <div className="flex gap-1">
         <select
-          value={value.id || ""}
+          value={value.id === "__not_found__" ? "" : (value.id || "")}
           onChange={(e) => {
             const id = e.target.value || null;
             const d = list.find((x) => x.id === id);
@@ -106,7 +106,11 @@ export const DivisiSelect = ({
           className="flex-1 border-2 border-paper-edge bg-paper px-2 py-2 text-sm uppercase rounded-none disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={disabled}
         >
-          <option value="">— Pilih divisi —</option>
+          {value.id === "__not_found__" ? (
+            <option value="">— Divisi tidak ada —</option>
+          ) : (
+            <option value="">— Pilih divisi —</option>
+          )}
           {list.map((d) => (
             <option key={d.id} value={d.id}>
               {d.nama}

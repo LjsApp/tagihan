@@ -422,35 +422,17 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
                 className="rounded-none border-2 border-paper-edge bg-paper uppercase"
               />
             </div>
-            {/* Divisi — selalu disabled, hanya mengikuti kode */}
+            {/* Divisi */}
             <div>
-              <Label className="label">Divisi</Label>
-              <div className="flex gap-1">
-                <select
-                  value={divisi.id === "__not_found__" ? "" : (divisi.id || "")}
-                  onChange={() => {}}
-                  disabled
-                  className="flex-1 border-2 border-paper-edge bg-paper px-2 py-2 text-sm uppercase rounded-none disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {divisi.id === "__not_found__" ? (
-                    <option value="">— Divisi tidak ada —</option>
-                  ) : divisi.id ? (
-                    <option value={divisi.id}>{divisi.nama}</option>
-                  ) : (
-                    <option value="">— Pilih Divisi —</option>
-                  )}
-                  {/* render all options so browser shows correct selection */}
-                  {divisiList.map(d => (
-                    <option key={d.id} value={d.id}>
-                      {d.nama}{d.kode_list?.length ? ` (${d.kode_list.join(", ")})` : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <DivisiSelect 
+                value={divisi} 
+                onChange={setDivisi} 
+                disabled={!!parsed?.kode_nota} 
+              />
               <div className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest">
                 {divisi.id === "__not_found__"
                   ? "⚠ Kode tidak cocok dengan divisi manapun"
-                  : divisi.id
+                  : divisi.id && parsed?.kode_nota
                   ? "✓ Otomatis dari kode nota"
                   : "Input kode nota untuk mengisi otomatis"}
               </div>
