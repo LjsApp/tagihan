@@ -59,11 +59,20 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
     }
   }, [open]);
 
-  // Auto match divisi from kode_nota
+  // Auto match divisi from kode_nota — runs on every kode change
   useEffect(() => {
-    if (!parsed?.kode_nota || divisi.id) return;
+    if (!parsed?.kode_nota) {
+      // kode dikosongkan → reset divisi
+      setDivisi({ id: null, nama: null });
+      return;
+    }
     const hit = findDivisiByKode(divisiList, parsed.kode_nota);
-    if (hit) setDivisi({ id: hit.id, nama: hit.nama });
+    if (hit) {
+      setDivisi({ id: hit.id, nama: hit.nama });
+    } else {
+      // kode ada tapi tidak match → set sentinel 'not-found'
+      setDivisi({ id: "__not_found__", nama: null });
+    }
   }, [parsed?.kode_nota, divisiList]);
 
 
@@ -179,8 +188,8 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
           items: parsed.items as any,
           file_url,
           ocr_text: rawText,
-          divisi_id: divisi.id,
-          divisi_nama: divisi.nama,
+          divisi_id: divisi.id === "__not_found__" ? null : (divisi.id || null),
+          divisi_nama: divisi.id === "__not_found__" ? null : (divisi.nama || null),
         })
         .select()
         .single();
@@ -202,7 +211,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-lg paper rounded-none border-2 border-dashed border-paper-edge max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-lg paper rounded-none border-2 border-dashed border-paper-edge max-h-[92vh] overflow-y-auto overflow-x-hidden"
         onInteractOutside={(e) => e.preventDefault()}
         onFocusOutside={(e) => e.preventDefault()}
       >
@@ -413,11 +422,39 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
                 className="rounded-none border-2 border-paper-edge bg-paper uppercase"
               />
             </div>
-            <DivisiSelect 
-              value={divisi} 
-              onChange={setDivisi} 
-              disabled={!!findDivisiByKode(divisiList, parsed.kode_nota)} 
-            />
+            {/* Divisi — selalu disabled, hanya mengikuti kode */}
+            <div>
+              <Label className="label">Divisi</Label>
+              <div className="flex gap-1">
+                <select
+                  value={divisi.id === "__not_found__" ? "" : (divisi.id || "")}
+                  onChange={() => {}}
+                  disabled
+                  className="flex-1 border-2 border-paper-edge bg-paper px-2 py-2 text-sm uppercase rounded-none disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {divisi.id === "__not_found__" ? (
+                    <option value="">— Divisi tidak ada —</option>
+                  ) : divisi.id ? (
+                    <option value={divisi.id}>{divisi.nama}</option>
+                  ) : (
+                    <option value="">— Pilih Divisi —</option>
+                  )}
+                  {/* render all options so browser shows correct selection */}
+                  {divisiList.map(d => (
+                    <option key={d.id} value={d.id}>
+                      {d.nama}{d.kode_list?.length ? ` (${d.kode_list.join(", ")})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest">
+                {divisi.id === "__not_found__"
+                  ? "⚠ Kode tidak cocok dengan divisi manapun"
+                  : divisi.id
+                  ? "✓ Otomatis dari kode nota"
+                  : "Input kode nota untuk mengisi otomatis"}
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label className="label">Tanggal</Label>

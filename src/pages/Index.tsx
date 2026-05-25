@@ -259,27 +259,51 @@ const Index = () => {
                     {isExpanded && trxInGroup.length > 0 && (
                       <div className="mt-3 pt-3 border-t-2 border-dashed border-paper-edge grid gap-2 pl-4 border-l-2 border-ink/20">
                         {trxInGroup.map(t => (
-                          <Link key={t.id} to={`/transaksi/${t.id}`} className="paper p-2 hover:border-ink transition-colors flex items-center justify-between text-xs min-w-0">
-                            <div className="min-w-0 truncate pr-2 flex-1">
-                              <div className="font-bold uppercase truncate">{t.customer || "(Tanpa nama)"}</div>
-                              <div className="text-[10px] text-muted-foreground truncate">
-                                {formatTanggal(t.created_at)} · {(t.nota_ids || []).length} nota
+                          <div key={t.id} className="paper p-2 hover:border-ink transition-colors">
+                            <div className="flex items-start justify-between gap-2">
+                              <Link to={`/transaksi/${t.id}`} className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                                  <span className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 border shrink-0 ${
+                                    t.status === "selesai" ? "border-success text-success" : "border-muted-foreground text-muted-foreground"
+                                  }`}>{t.status}</span>
+                                  <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                                    {formatTanggal(t.created_at)}
+                                  </span>
+                                  {t.drive_file_id && (
+                                    <span className="text-[9px] uppercase tracking-widest font-bold text-success flex items-center gap-0.5">
+                                      <Cloud className="w-3 h-3" /> DRIVE
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="font-bold uppercase truncate text-xs">
+                                  {t.customer || "(Tanpa nama)"}
+                                </div>
+                                <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                  <Calendar className="w-3 h-3 shrink-0" />
+                                  JT: {formatTanggal(t.jatuh_tempo)} · {(t.nota_ids || []).length} nota
+                                </div>
+                              </Link>
+                              <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                                <div className="num text-xs font-bold">Rp {formatRp(t.total_akhir)}</div>
+                                <div className="flex gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
+                                  <PreviewTransactionButton
+                                    trx={t}
+                                    disabled={!t.nota_ids || t.nota_ids.length === 0}
+                                    variant="outline"
+                                    className="text-[9px] uppercase tracking-widest h-5 px-1.5 rounded-none border-ink"
+                                  >
+                                    Preview
+                                  </PreviewTransactionButton>
+                                  <button
+                                    onClick={() => handleDelete(t.id)}
+                                    className="text-[9px] uppercase tracking-widest text-muted-foreground hover:text-destructive flex items-center gap-0.5"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                            <div className="flex flex-col items-end gap-1 shrink-0">
-                              <div className="num font-bold">Rp {formatRp(t.total_akhir)}</div>
-                              <div onClick={e => e.stopPropagation()}>
-                                <PreviewTransactionButton 
-                                  trx={t} 
-                                  disabled={!t.nota_ids || t.nota_ids.length === 0}
-                                  variant="outline"
-                                  className="text-[9px] uppercase tracking-widest h-5 px-1.5 rounded-none"
-                                >
-                                  Preview
-                                </PreviewTransactionButton>
-                              </div>
-                            </div>
-                          </Link>
+                          </div>
                         ))}
                       </div>
                     )}
