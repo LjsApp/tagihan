@@ -223,7 +223,7 @@ const Index = () => {
                 
                 return (
                   <div key={g.id} className="paper p-3 hover:border-ink transition-colors flex flex-col">
-                    <div className="flex items-start justify-between gap-2 cursor-pointer" onClick={() => toggleGroup(g.id)}>
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 cursor-pointer" onClick={() => toggleGroup(g.id)}>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5 mb-1">
                           <span className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 border shrink-0 ${
@@ -257,12 +257,12 @@ const Index = () => {
                           )}
                         </div>
                       </div>
-                      <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                      <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-1 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t-2 sm:border-t-0 border-dashed border-paper-edge w-full sm:w-auto shrink-0">
                         <div className="num text-sm sm:text-base font-bold flex items-center gap-2">
                           Rp {formatRp(total)}
                           {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
                         </div>
-                        <div className="flex gap-2 mt-1" onClick={e => e.stopPropagation()}>
+                        <div className="flex gap-2" onClick={e => e.stopPropagation()}>
                           <PreviewGroupButton 
                             group={g} 
                             variant="outline" 
@@ -284,7 +284,7 @@ const Index = () => {
                       <div className="mt-3 pt-3 border-t-2 border-dashed border-paper-edge grid gap-2 pl-4 border-l-2 border-ink/20">
                         {trxInGroup.map(t => (
                           <div key={t.id} className="paper p-2 hover:border-ink transition-colors">
-                            <div className="flex items-start justify-between gap-2">
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                               <Link to={`/transaksi/${t.id}`} className="flex-1 min-w-0">
                                 <div className="flex flex-wrap items-center gap-1.5 mb-1">
                                   <span className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 border shrink-0 ${
@@ -307,9 +307,9 @@ const Index = () => {
                                   JT: {formatTanggal(t.jatuh_tempo)} · {(t.nota_ids || []).length} nota
                                 </div>
                               </Link>
-                              <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                              <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-1 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t-2 sm:border-t-0 border-dashed border-paper-edge w-full sm:w-auto shrink-0">
                                 <div className="num text-xs font-bold">Rp {formatRp(t.total_akhir)}</div>
-                                <div className="flex gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
+                                <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                                   <PreviewTransactionButton
                                     trx={t}
                                     disabled={!t.nota_ids || t.nota_ids.length === 0}
@@ -363,7 +363,7 @@ const Index = () => {
           <div className="grid gap-3">
             {paginated.map((t) => (
               <div key={t.id} className="paper p-3 hover:border-ink transition-colors">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <Link to={`/transaksi/${t.id}`} className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5 mb-1">
                       <span className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 border shrink-0 ${
@@ -390,9 +390,9 @@ const Index = () => {
                       JT: {formatTanggal(t.jatuh_tempo)} · {(t.nota_ids || []).length} nota
                     </div>
                   </Link>
-                  <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-1 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t-2 sm:border-t-0 border-dashed border-paper-edge w-full sm:w-auto shrink-0">
                     <div className="num text-sm sm:text-base font-bold">Rp {formatRp(t.total_akhir)}</div>
-                    <div className="flex gap-2 mt-1">
+                    <div className="flex gap-2">
                       <PreviewTransactionButton 
                         trx={t} 
                         disabled={!t.nota_ids || t.nota_ids.length === 0}

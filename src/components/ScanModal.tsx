@@ -211,12 +211,12 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-full max-w-2xl paper rounded-none border-2 border-dashed border-paper-edge max-h-[92vh] overflow-y-auto overflow-x-hidden"
+        className="w-[95vw] sm:w-full max-w-2xl paper rounded-none border-2 border-dashed border-paper-edge max-h-[92vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6"
         onInteractOutside={(e) => e.preventDefault()}
         onFocusOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="uppercase tracking-widest text-center">Scan Nota</DialogTitle>
+          <DialogTitle className="uppercase tracking-widest text-center pr-8 sm:pr-0">Scan Nota</DialogTitle>
         </DialogHeader>
 
         {stage === "idle" && (
