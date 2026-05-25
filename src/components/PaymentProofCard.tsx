@@ -9,6 +9,8 @@ export const PaymentProofCard = ({
   trxId,
   buktiUrl,
   tanggalTf,
+  metodeTf,
+  catatanTf,
   onUpdate,
 }: {
   trxId: string;
