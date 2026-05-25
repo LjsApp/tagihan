@@ -211,7 +211,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-[95vw] sm:w-full max-w-2xl paper rounded-none border-2 border-dashed border-paper-edge max-h-[92vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6"
+        className="w-[95vw] sm:w-full max-w-2xl paper rounded-none border-2 border-dashed border-paper-edge max-h-[92vh] overflow-y-auto overflow-x-hidden p-3 sm:p-6"
         onInteractOutside={(e) => e.preventDefault()}
         onFocusOutside={(e) => e.preventDefault()}
       >
@@ -345,7 +345,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
         )}
 
         {stage === "edit" && parsed && (
-          <div className="space-y-3 text-sm">
+          <div className="space-y-2 sm:space-y-3 text-sm">
             {previewUrl && (
               <div className="border-2 border-paper-edge">
                 {/* Tombol filter — hanya muncul jika ada warpedCanvas */}
@@ -374,7 +374,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
                 </details>
               </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-4">
               <div>
                 <Label className="label">Kode</Label>
                 <Input
@@ -391,7 +391,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
                         : p,
                     );
                   }}
-                  className="rounded-none border-2 border-paper-edge bg-paper uppercase"
+                  className="rounded-none border-2 border-paper-edge bg-paper uppercase h-8 text-xs sm:h-10 sm:text-sm"
                 />
               </div>
               <div>
@@ -410,7 +410,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
                         : p,
                     );
                   }}
-                  className="rounded-none border-2 border-paper-edge bg-paper"
+                  className="rounded-none border-2 border-paper-edge bg-paper h-8 text-xs sm:h-10 sm:text-sm"
                 />
               </div>
             </div>
@@ -419,7 +419,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
               <Input
                 value={parsed.nama_customer || ""}
                 onChange={(e) => updateField("nama_customer", e.target.value)}
-                className="rounded-none border-2 border-paper-edge bg-paper uppercase"
+                className="rounded-none border-2 border-paper-edge bg-paper uppercase h-8 text-xs sm:h-10 sm:text-sm"
               />
             </div>
             {/* Divisi */}
@@ -437,14 +437,14 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
                   : "Input kode nota untuk mengisi otomatis"}
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-4">
               <div>
                 <Label className="label">Tanggal</Label>
                 <Input
                   type="date"
                   value={parsed.tanggal || ""}
                   onChange={(e) => updateField("tanggal", e.target.value || null)}
-                  className="rounded-none border-2 border-paper-edge bg-paper"
+                  className="rounded-none border-2 border-paper-edge bg-paper h-8 text-xs sm:h-10 sm:text-sm"
                 />
               </div>
               <div>
@@ -458,6 +458,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
                     const a3 = a2 - a2 * ((Number(dn.persen3) || 0) / 100);
                     setParsed((p) => (p ? { ...p, total: n, netto: Math.max(0, a3) } : p));
                   }}
+                  className="h-8 text-xs sm:h-10 sm:text-sm"
                 />
               </div>
             </div>
@@ -495,7 +496,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
               ];
 
               return (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 border-2 border-dashed border-paper-edge p-2 bg-ink/5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 border-2 border-dashed border-paper-edge p-2 bg-ink/5">
                   {rows.map((r) => (
                     <div key={r.key} className="grid grid-cols-[1fr,1.4fr] gap-2 items-end">
                       <div>
@@ -506,12 +507,12 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
                           value={r.p || ""}
                           placeholder="0"
                           onChange={(e) => setPersen(r.key, Math.max(0, Number(e.target.value)))}
-                          className="rounded-none border-2 border-paper-edge bg-paper"
+                          className="rounded-none border-2 border-paper-edge bg-paper h-8 text-xs sm:h-10 sm:text-sm"
                         />
                       </div>
                       <div>
                         <Label className="label">{r.label} Rp</Label>
-                        <RupiahInput value={Math.round(r.nom)} onChange={() => {}} disabled />
+                        <RupiahInput value={Math.round(r.nom)} onChange={() => {}} disabled className="h-8 text-xs sm:h-10 sm:text-sm" />
                       </div>
                     </div>
                   ))}

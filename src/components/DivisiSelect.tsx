@@ -103,7 +103,7 @@ export const DivisiSelect = ({
             const d = list.find((x) => x.id === id);
             onChange({ id, nama: d?.nama || null });
           }}
-          className="flex-1 border-2 border-paper-edge bg-paper px-2 py-2 text-sm uppercase rounded-none disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 border-2 border-paper-edge bg-paper px-2 h-8 text-xs sm:h-10 sm:text-sm uppercase rounded-none disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={disabled}
         >
           {value.id === "__not_found__" ? (
