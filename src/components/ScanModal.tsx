@@ -211,7 +211,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-[95vw] sm:w-full max-w-2xl paper rounded-none border-2 border-dashed border-paper-edge max-h-[92vh] overflow-y-auto overflow-x-hidden p-3 sm:p-6"
+        className="w-[95vw] sm:w-full max-w-2xl paper rounded-none border-2 border-dashed border-paper-edge max-h-[92vh] overflow-y-auto overflow-x-auto p-3 sm:p-6"
         onInteractOutside={(e) => e.preventDefault()}
         onFocusOutside={(e) => e.preventDefault()}
       >
@@ -345,7 +345,7 @@ export const ScanModal = ({ open, onOpenChange, onSaved, existingCustomer }: Pro
         )}
 
         {stage === "edit" && parsed && (
-          <div className="space-y-2 sm:space-y-3 text-sm">
+          <div className="space-y-2 sm:space-y-3 text-sm min-w-[500px] sm:min-w-0 pb-2">
             {previewUrl && (
               <div className="border-2 border-paper-edge">
                 {/* Tombol filter — hanya muncul jika ada warpedCanvas */}
