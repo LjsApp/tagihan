@@ -47,8 +47,8 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-block border-2 border-dashed border-[hsl(var(--paper-edge))] p-4 mb-4">
-            <div className="text-2xl font-bold uppercase tracking-widest">📋</div>
+          <div className="flex justify-center mb-4">
+            <img src="/logo.png" alt="Logo" className="w-24 h-24 object-contain" />
           </div>
           <h1 className="text-lg font-bold uppercase tracking-widest">Note Scanner Pro</h1>
           <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1">

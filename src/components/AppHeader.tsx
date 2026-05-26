@@ -18,9 +18,7 @@ export const AppHeader = () => {
       <header className="border-b-2 border-dashed border-paper-edge bg-paper sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-3 group shrink-0">
-            <div className="w-9 h-9 border-2 border-ink flex items-center justify-center bg-paper">
-              <Receipt className="w-4 h-4 text-ink" />
-            </div>
+            <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" />
             <div className="leading-tight">
               <div className="font-bold uppercase tracking-widest text-sm">Nota Scan</div>
               <div className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground hidden sm:block">
