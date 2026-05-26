@@ -96,7 +96,8 @@ const Index = () => {
       const matchCustomer = (t.customer || "").toLowerCase().includes(searchLower);
       const matchDate1 = formatTanggal(t.created_at).includes(searchLower);
       const matchDate2 = formatTanggal(t.jatuh_tempo).includes(searchLower);
-      if (!matchCustomer && !matchDate1 && !matchDate2) return false;
+      const matchTotal = t.total_akhir?.toString().includes(searchLower) || formatRp(t.total_akhir || 0).includes(searchLower);
+      if (!matchCustomer && !matchDate1 && !matchDate2 && !matchTotal) return false;
     }
     return true;
   });
@@ -109,7 +110,11 @@ const Index = () => {
       const matchName = (g.nama || "").toLowerCase().includes(searchLower);
       const matchDate = formatTanggal(g.created_at).includes(searchLower);
       const matchCustomers = trxInGroup.some(t => (t.customer || "").toLowerCase().includes(searchLower));
-      if (!matchName && !matchDate && !matchCustomers) return false;
+      
+      const total = trxInGroup.reduce((s, t) => s + Number(t.total_akhir || 0), 0);
+      const matchTotal = total.toString().includes(searchLower) || formatRp(total).includes(searchLower);
+
+      if (!matchName && !matchDate && !matchCustomers && !matchTotal) return false;
     }
     return true;
   });
@@ -138,7 +143,7 @@ const Index = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Cari customer..."
+                placeholder="Cari customer, tanggal, total transaksi..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9 border-2 border-paper-edge bg-paper rounded-none"
