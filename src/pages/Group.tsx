@@ -53,14 +53,14 @@ export default function GroupPage() {
 
   const load = async () => {
     if (!id) return;
-    
+
     // Fetch group
     const { data: g } = await supabase
       .from("transaction_groups")
       .select("*")
       .eq("id", id)
       .maybeSingle();
-      
+
     if (!g) {
       toast.error("Group tidak ditemukan");
       return;
@@ -243,9 +243,8 @@ export default function GroupPage() {
     );
   }
 
-  const headerTitle = `PERINCIAN TAGIHAN${
-    company?.kategori ? ` ${company.kategori.toUpperCase()}` : ""
-  }${company?.nama ? ` ${company.nama.toUpperCase()}` : ""}`;
+  const headerTitle = `PERINCIAN TAGIHAN${company?.kategori ? ` ${company.kategori.toUpperCase()}` : ""
+    }${company?.nama ? ` ${company.nama.toUpperCase()}` : ""}`;
 
   return (
     <div className="min-h-screen pb-24">
@@ -280,6 +279,7 @@ export default function GroupPage() {
                 onChange={(e) => updateGroup({ nama: e.target.value.toUpperCase() })}
                 placeholder="Misal: BAYAR BULAN MEI"
                 className="rounded-none border-2 border-paper-edge bg-paper uppercase font-bold"
+                disabled
               />
             </div>
 
@@ -446,7 +446,7 @@ export default function GroupPage() {
               const availableDrafts = allDrafts.filter(
                 (t) => !groupCustomer || t.customer === groupCustomer
               );
-              
+
               if (availableDrafts.length === 0) {
                 return (
                   <p className="text-xs text-muted-foreground italic">
@@ -454,7 +454,7 @@ export default function GroupPage() {
                   </p>
                 );
               }
-              
+
               return availableDrafts.map((t) => (
                 <button
                   key={t.id}

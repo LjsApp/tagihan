@@ -68,10 +68,6 @@ export const TandaTerimaGroupModal = ({
   };
 
   const handleSaveDrive = async () => {
-    if (!company) {
-      toast.error("Silakan pilih Company Profile terlebih dahulu");
-      return;
-    }
     setIsSavingDrive(true);
     try {
       const doc = await generateTandaTerimaGroupPDF(group, trxList, notasByTrx, company, bank);
@@ -280,15 +276,17 @@ export const TandaTerimaGroupModal = ({
             {isSavingDrive ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Cloud className="w-4 h-4 mr-1" />}
             {group.drive_file_id ? "Sudah Tersimpan di Drive" : "Simpan ke Drive"}
           </Button>
-          <Button
-            onClick={handleFinalize}
-            disabled={!group.bukti_tf_url || trxList.length === 0}
-            className="bg-success text-success-foreground hover:bg-success/90 rounded-none uppercase tracking-widest text-xs font-bold mt-2"
-          >
-            <Check className="w-4 h-4 mr-1" /> Tandai Semua Selesai
-          </Button>
-          {!group.bukti_tf_url && (
-            <div className="text-[10px] uppercase tracking-widest text-stamp text-center border border-stamp p-2">
+          {!trxList.every(t => t.status === "selesai") && (
+            <Button
+              onClick={handleFinalize}
+              disabled={!group.bukti_tf_url || trxList.length === 0}
+              className="bg-success text-success-foreground hover:bg-success/90 rounded-none uppercase tracking-widest text-xs font-bold mt-2"
+            >
+              <Check className="w-4 h-4 mr-1" /> Tandai Semua Selesai
+            </Button>
+          )}
+          {!group.bukti_tf_url && !trxList.every(t => t.status === "selesai") && (
+            <div className="text-[10px] uppercase tracking-widest text-stamp text-center border border-stamp p-2 mt-2">
               Upload bukti transfer untuk menandai selesai
             </div>
           )}

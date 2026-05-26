@@ -119,6 +119,7 @@ export const TandaTerimaModal = ({
   };
 
   const handleFinalize = async () => {
+    if (!confirm("Tandai transaksi ini sebagai selesai?")) return;
     const { error } = await supabase
       .from("transactions")
       .update({ status: "selesai", updated_at: new Date().toISOString() })
@@ -310,18 +311,20 @@ export const TandaTerimaModal = ({
         </div>
         {trx.status !== "selesai" && (
           <>
-            {!trx.bukti_tf_url && (
-              <div className="text-[10px] uppercase tracking-widest text-stamp text-center border border-stamp p-2">
-                Upload bukti transfer terlebih dahulu untuk menandai selesai
+            {trx.status !== "selesai" && (
+              <Button
+                onClick={handleFinalize}
+                disabled={!trx.bukti_tf_url || notas.length === 0}
+                className="bg-success text-success-foreground hover:bg-success/90 rounded-none uppercase tracking-widest text-xs font-bold w-full mt-2"
+              >
+                <Check className="w-4 h-4 mr-1" /> Tandai Selesai
+              </Button>
+            )}
+            {!trx.bukti_tf_url && trx.status !== "selesai" && (
+              <div className="text-[10px] uppercase tracking-widest text-stamp text-center border border-stamp p-2 mt-2">
+                Upload bukti transfer untuk menandai selesai
               </div>
             )}
-            <Button
-              onClick={handleFinalize}
-              disabled={!trx.bukti_tf_url}
-              className="bg-success text-success-foreground hover:bg-success/90 rounded-none uppercase tracking-widest text-xs font-bold w-full disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-            >
-              <Check className="w-4 h-4 mr-1" /> Tandai Selesai
-            </Button>
           </>
         )}
       </DialogContent>
