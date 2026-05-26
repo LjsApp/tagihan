@@ -276,6 +276,25 @@ export const TandaTerimaGroupModal = ({
             {isSavingDrive ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Cloud className="w-4 h-4 mr-1" />}
             {group.drive_file_id ? "Sudah Tersimpan di Drive" : "Simpan ke Drive"}
           </Button>
+          {group.drive_file_id && (
+            <Button
+              variant="outline"
+              onClick={async () => {
+                if (!confirm("Reset status Drive? (Gunakan jika Anda menghapus file di Drive secara manual)")) return;
+                const { error } = await supabase.from("transaction_groups").update({ drive_file_id: null }).eq("id", group.id);
+                if (!error) {
+                  setDriveCopyCount(0);
+                  toast.success("Status Drive direset");
+                  if (onFinalized) onFinalized();
+                } else {
+                  toast.error("Gagal reset status: " + error.message);
+                }
+              }}
+              className="border-2 border-dashed border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-none uppercase tracking-widest text-[10px] font-bold"
+            >
+              Reset Status Drive
+            </Button>
+          )}
           {!trxList.every(t => t.status === "selesai") && (
             <Button
               onClick={handleFinalize}
