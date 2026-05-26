@@ -311,16 +311,14 @@ export const TandaTerimaModal = ({
         </div>
         {trx.status !== "selesai" && (
           <>
-            {trx.status !== "selesai" && (
-              <Button
-                onClick={handleFinalize}
-                disabled={!trx.bukti_tf_url || notas.length === 0}
-                className="bg-success text-success-foreground hover:bg-success/90 rounded-none uppercase tracking-widest text-xs font-bold w-full mt-2"
-              >
-                <Check className="w-4 h-4 mr-1" /> Tandai Selesai
-              </Button>
-            )}
-            {!trx.bukti_tf_url && trx.status !== "selesai" && (
+            <Button
+              onClick={handleFinalize}
+              disabled={!trx.bukti_tf_url || notas.length === 0}
+              className="bg-success text-success-foreground hover:bg-success/90 rounded-none uppercase tracking-widest text-xs font-bold w-full mt-2"
+            >
+              <Check className="w-4 h-4 mr-1" /> Tandai Selesai
+            </Button>
+            {!trx.bukti_tf_url && (
               <div className="text-[10px] uppercase tracking-widest text-stamp text-center border border-stamp p-2 mt-2">
                 Upload bukti transfer untuk menandai selesai
               </div>
