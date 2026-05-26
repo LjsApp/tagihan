@@ -32,6 +32,7 @@ import {
   X,
   FileCheck2,
   AlertTriangle,
+  Cloud,
 } from "lucide-react";
 import {
   formatRp,
@@ -313,15 +314,26 @@ const TransactionPage = () => {
                     {trx.customer || "(Akan terisi otomatis)"}
                   </div>
                 </div>
-                <span
-                  className={`text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 border ${
-                    trx.status === "selesai"
-                      ? "border-success text-success"
-                      : "border-muted-foreground text-muted-foreground"
-                  }`}
-                >
-                  {trx.status}
-                </span>
+                <div className="flex flex-col gap-1 items-end">
+                  <span
+                    className={`text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 border ${
+                      trx.status === "selesai"
+                        ? "border-success text-success"
+                        : "border-muted-foreground text-muted-foreground"
+                    }`}
+                  >
+                    {trx.status}
+                  </span>
+                  {trx.drive_file_id ? (
+                    <span className="text-[9px] uppercase tracking-widest font-bold text-success flex items-center gap-0.5 border border-success px-1">
+                      <Cloud className="w-3 h-3" /> DRIVE ✓
+                    </span>
+                  ) : (
+                    <span className="text-[9px] uppercase tracking-widest text-muted-foreground flex items-center gap-0.5 border border-dashed border-muted-foreground px-1">
+                      <Cloud className="w-3 h-3" /> BELUM DI DRIVE
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 

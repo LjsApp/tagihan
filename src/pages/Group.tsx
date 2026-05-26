@@ -273,7 +273,18 @@ export default function GroupPage() {
         <div className="grid lg:grid-cols-[1fr,360px] gap-5">
           <div>
             <div className="paper p-4 mb-4">
-              <div className="label mb-1">Nama Group</div>
+              <div className="flex justify-between items-start mb-1">
+                <div className="label">Nama Group</div>
+                {group.drive_file_id ? (
+                  <span className="text-[9px] uppercase tracking-widest font-bold text-success flex items-center gap-0.5 px-1 border border-success">
+                    <Cloud className="w-3 h-3" /> DRIVE ✓
+                  </span>
+                ) : (
+                  <span className="text-[9px] uppercase tracking-widest text-muted-foreground flex items-center gap-0.5 border border-dashed border-muted-foreground px-1">
+                    <Cloud className="w-3 h-3" /> BELUM DI DRIVE
+                  </span>
+                )}
+              </div>
               <Input
                 value={group.nama || ""}
                 onChange={(e) => updateGroup({ nama: e.target.value.toUpperCase() })}
