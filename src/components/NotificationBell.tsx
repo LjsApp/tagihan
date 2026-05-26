@@ -38,12 +38,12 @@ export const NotificationBell = () => {
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="relative w-10 h-10 border-2 border-ink flex items-center justify-center bg-paper hover:bg-ink/10"
+          className="relative p-1.5 text-muted-foreground hover:text-ink transition-colors"
           aria-label="Notifikasi"
         >
-          <Bell className="w-5 h-5" />
+          <Bell className="w-4 h-4" />
           {count > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-stamp text-paper text-[10px] font-bold flex items-center justify-center border border-ink">
+            <span className="absolute top-0 right-0 min-w-[14px] h-[14px] px-0.5 bg-stamp text-paper text-[8px] font-bold flex items-center justify-center border border-ink">
               {count > 9 ? "9+" : count}
             </span>
           )}

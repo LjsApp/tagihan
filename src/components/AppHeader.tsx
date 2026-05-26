@@ -20,10 +20,7 @@ export const AppHeader = () => {
           <Link to="/" className="flex items-center gap-3 group shrink-0">
             <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" />
             <div className="leading-tight">
-              <div className="font-bold uppercase tracking-widest text-sm">Nota Scan</div>
-              <div className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground hidden sm:block">
-                Perincian · Tagihan · Tanda Terima
-              </div>
+              <div className="font-bold uppercase tracking-widest text-sm">catatanku</div>
             </div>
           </Link>
 
