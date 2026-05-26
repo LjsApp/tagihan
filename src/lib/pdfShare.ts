@@ -127,3 +127,24 @@ export const uploadPDFToDriveStructured = async (
     return null;
   }
 };
+
+/**
+ * Cek apakah file dengan ID tertentu masih ada di Google Drive.
+ * Mengembalikan true jika file ada, false jika sudah dihapus.
+ */
+export const checkDriveFileExists = async (fileId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.functions.invoke("drive-upload", {
+      body: {
+        action: "check",
+        fileId,
+      },
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    return data?.exists === true;
+  } catch (e: any) {
+    console.error("checkDriveFileExists error:", e?.message);
+    return false;
+  }
+};

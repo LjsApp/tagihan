@@ -15,8 +15,10 @@ Deno.serve(async (req: Request) => {
 
     if (!appsScriptUrl) throw new Error("APPS_SCRIPT_WEB_APP_URL belum dikonfigurasi");
 
-    // Pass the rootFolderId from Supabase Secrets to the Apps Script
-    body.rootFolderId = rootFolderId;
+    // Only pass rootFolderId for upload actions, not for check
+    if (!body.action || body.action === "upload") {
+      body.rootFolderId = rootFolderId;
+    }
 
     // Forward the request to Google Apps Script
     const res = await fetch(appsScriptUrl, {
@@ -28,7 +30,6 @@ Deno.serve(async (req: Request) => {
     });
 
     // Apps Script redirects, fetch follows automatically.
-    // The final response should be the JSON from Apps Script.
     const data = await res.json();
 
     if (data.error) {

@@ -21,6 +21,7 @@ import {
   sharePDF,
   uploadPDFToDriveStructured,
   pdfToBlob,
+  checkDriveFileExists,
 } from "@/lib/pdfShare";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -46,6 +47,7 @@ export const TandaTerimaModal = ({
   const totalDisc = hitungDiskonTotal(trx.subtotal, trx.diskon_manual || []);
   const [isSharing, setIsSharing] = useState(false);
   const [isSavingDrive, setIsSavingDrive] = useState(false);
+  const [isCheckingDrive, setIsCheckingDrive] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [driveCopyCount, setDriveCopyCount] = useState(trx.drive_file_id ? 2 : 0);
 
@@ -311,21 +313,32 @@ export const TandaTerimaModal = ({
           {trx.drive_file_id && (
             <Button
               variant="outline"
+              disabled={isCheckingDrive}
               onClick={async () => {
-                if (!confirm("Reset status Drive? (Gunakan jika Anda menghapus file di Drive secara manual)")) return;
-                const { error } = await supabase.from("transactions").update({ drive_file_id: null }).eq("id", trx.id);
-                if (!error) {
-                  if (trx) trx.drive_file_id = null;
-                  setDriveCopyCount(0);
-                  toast.success("Status Drive direset");
-                  if (onFinalized) onFinalized();
-                } else {
-                  toast.error("Gagal reset status: " + error.message);
+                setIsCheckingDrive(true);
+                try {
+                  const exists = await checkDriveFileExists(trx.drive_file_id!);
+                  if (exists) {
+                    toast.success("✓ Data masih ada di Google Drive");
+                  } else {
+                    toast.info("File tidak ditemukan di Drive. Status direset.");
+                    const { error } = await supabase.from("transactions").update({ drive_file_id: null }).eq("id", trx.id);
+                    if (!error) {
+                      trx.drive_file_id = null;
+                      setDriveCopyCount(0);
+                      if (onFinalized) onFinalized();
+                    } else {
+                      toast.error("Gagal reset status: " + error.message);
+                    }
+                  }
+                } finally {
+                  setIsCheckingDrive(false);
                 }
               }}
-              className="border-2 border-dashed border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-none uppercase tracking-widest text-[10px] font-bold"
+              className="border-2 border-dashed rounded-none uppercase tracking-widest text-[10px] font-bold"
             >
-              Reset Status Drive
+              {isCheckingDrive ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Cloud className="w-3 h-3 mr-1" />}
+              Cek Ulang Status Drive
             </Button>
           )}
         </div>
